@@ -1,3 +1,6 @@
+// todo 使用update-electron-app进行升级
+// https://github.com/electron/update-electron-app
+
 import { app, BrowserWindow } from 'electron';
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer';
 import { enableLiveReload } from 'electron-compile';
@@ -11,11 +14,21 @@ const isDevMode = process.execPath.match(/[\\/]electron/);
 if (isDevMode) enableLiveReload();
 
 const createWindow = async () => {
+  const windowOptions = {
+    width: 1080,
+    minWidth: 680,
+    height: 840,
+    title: app.getName(),
+    // todo icon，backgroundColor需要设置
+    // In Electron 5.0.0, node integration will be disabled by default.
+    // To prepare for this change, set {nodeIntegration: true} in the webPreferences for this window,
+    // or ensure that this window does not rely on node integration and set {nodeIntegration: false}.
+    webPreferences: {
+      nodeIntegration: true
+    }
+  };
   // Create the browser window.
-  mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
-  });
+  mainWindow = new BrowserWindow(windowOptions);
 
   // and load the index.html of the app.
   mainWindow.loadURL(`file://${__dirname}/index.html`);
@@ -24,6 +37,7 @@ const createWindow = async () => {
   if (isDevMode) {
     await installExtension(VUEJS_DEVTOOLS);
     mainWindow.webContents.openDevTools();
+    require('devtron').install();
   }
 
   // Emitted when the window is closed.
@@ -34,6 +48,30 @@ const createWindow = async () => {
     mainWindow = null;
   });
 };
+
+// Make this app a single instance app.
+//
+// The main window will be restored and focused instead of a second window
+// opened when a person attempts to launch a second instance.
+//
+// Returns true if the current version of the app should quit instead of
+// launching.
+app.requestSingleInstanceLock();
+
+app.on('second-instance', () => {
+  if (mainWindow) {
+    if (mainWindow.isMinimized()) {
+      mainWindow.restore();
+    }
+    mainWindow.focus();
+  }
+});
+
+// Require each JS file in the main-process dir
+const path = require('path');
+const glob = require('glob');
+const files = glob.sync(path.join(__dirname, 'main-process/**/*.js'));
+files.forEach((file) => { require(file) });
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
