@@ -1,7 +1,7 @@
 // todo 使用update-electron-app进行升级
 // https://github.com/electron/update-electron-app
 
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, ipcMain } from 'electron';
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer';
 import { enableLiveReload } from 'electron-compile';
 
@@ -97,3 +97,37 @@ app.on('activate', () => {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.
+
+var knex = require("knex")({
+  client: "sqlite3",
+  connection: {
+    filename: path.join(__dirname, 'database.sqlite')
+  },
+  useNullAsDefault: true
+});
+
+knex.schema.hasTable('key').then(function(exists) {
+  if (!exists) {
+    return knex.schema.createTable('key', function(table) {
+      table.increments('id');
+      table.string('pubkey_hash');
+      table.string('output_type');
+      table.string('address');
+    });
+  }
+});
+
+ipcMain.on('add-item', function (event) {
+  knex('key')
+      .insert({pubkey_hash:'b8452ebb4fda4c0fec35b9818400b4ae8979df0b',output_type:'P2PKH',address:'1HoLDBh7sGXMLry1t5FZ65Mx4ny5BsvA1c'})
+      .then( function (result) {
+        event.sender.send('add-item-result', result);
+      });
+});
+
+ipcMain.on('query-all-item', function (event) {
+  let result = knex.select("*").from('key');
+  result.then(function(rows){
+    event.sender.send('query-all-item-result', rows);
+  })
+});
