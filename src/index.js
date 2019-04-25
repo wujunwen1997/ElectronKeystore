@@ -30,14 +30,15 @@ const createWindow = async () => {
   // Create the browser window.
   mainWindow = new BrowserWindow(windowOptions);
 
-  // and load the index.html of the app.
-  mainWindow.loadURL(`file://${__dirname}/index.html`);
-
   // Open the DevTools.
   if (isDevMode) {
+    mainWindow.loadURL(`http:localhost:8080`);
     await installExtension(VUEJS_DEVTOOLS);
     mainWindow.webContents.openDevTools();
     require('devtron').install();
+  } else {
+    // and load the index.html of the app.
+    mainWindow.loadURL(`file://${__dirname}/vue-content/dist/index.html`);
   }
 
   // Emitted when the window is closed.
