@@ -32,7 +32,7 @@ const createWindow = async () => {
 
   // Open the DevTools.
   if (isDevMode) {
-    mainWindow.loadURL(`http:localhost:8080`);
+    mainWindow.loadURL(`http:localhost:8000`);
     await installExtension(VUEJS_DEVTOOLS);
     mainWindow.webContents.openDevTools();
     require('devtron').install();
@@ -131,4 +131,9 @@ ipcMain.on('query-all-item', function (event) {
   result.then(function(rows){
     event.sender.send('query-all-item-result', rows);
   })
+});
+// 创建钱包
+ipcMain.on('create-wallet', function (event, data) {
+  console.log(456, data)
+    event.sender.send('create-wallet-result', {data: 123});
 });

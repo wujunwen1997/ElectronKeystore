@@ -1,0 +1,30 @@
+.create{
+  width: 360px;min-height: 400px;margin: auto;text-align: center;padding-top: 12vh;
+  .title{color: white;font-size: 22px;margin-bottom: 8px}
+  >span{
+    color: white;font-size: 12px;line-height: 16px;opacity: 0.8;
+  }
+  :global .login-form {
+    margin-top: 20px;
+    .ant-input-affix-wrapper {
+      .ant-input:not(:first-child){
+        padding-left: 70px !important;
+      }
+      .ant-input-prefix{
+        width: 60px;text-align: right;left: 2px;color: #848484;
+      }
+    }
+  }
+  .bot{
+    display: flex ;justify-content: center;
+    a{
+      color: #f3f3f3;
+    }
+    li {
+      &:nth-child(2){
+        margin: 0 15px;line-height: 18px;color: #e8e7e9;
+      }
+      &:hover a{color: #f5fffa;}
+    }
+  }
+}
