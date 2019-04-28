@@ -3,15 +3,13 @@
 
 import { app, BrowserWindow, ipcMain } from 'electron';
 import installExtension, { REACT_DEVELOPER_TOOLS } from 'electron-devtools-installer';
-import { enableLiveReload } from 'electron-compile';
+import {Wallet} from './wallet';
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;
 
 const isDevMode = process.execPath.match(/[\\/]electron/);
-
-if (isDevMode) enableLiveReload();
 
 const createWindow = async () => {
   const windowOptions = {
@@ -38,7 +36,7 @@ const createWindow = async () => {
     require('devtron').install();
   } else {
     // and load the index.html of the app.
-    mainWindow.loadURL(`file://${__dirname}/vue-content/dist/index.html`);
+    mainWindow.loadURL(`file://${__dirname}/react-umi-dva-content/dist/index.html`);
   }
 
   // Emitted when the window is closed.
@@ -99,93 +97,5 @@ app.on('activate', () => {
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.
 
-var knex = require("knex")({
-  client: "sqlite3",
-  connection: {
-    filename: path.join(__dirname, 'database.sqlite')
-  },
-  useNullAsDefault: true
-});
-
-knex.schema.hasTable('key').then(function(exists) {
-  if (!exists) {
-    return knex.schema.createTable('key', function(table) {
-      table.increments('id');
-      table.string('pubkey_hash');
-      table.string('output_type');
-      table.string('address');
-    });
-  }
-});
-
-ipcMain.on('add-item', function (event) {
-  knex('key')
-      .insert({pubkey_hash:'b8452ebb4fda4c0fec35b9818400b4ae8979df0b',output_type:'P2PKH',address:'1HoLDBh7sGXMLry1t5FZ65Mx4ny5BsvA1c'})
-      .then( function (result) {
-        event.sender.send('add-item-result', result);
-      });
-});
-
-ipcMain.on('query-all-item', function (event) {
-  let result = knex.select("*").from('key');
-  result.then(function(rows){
-    event.sender.send('query-all-item-result', rows);
-  })
-});
-// 创建钱包
-ipcMain.on('create-wallet', function (event, data) {
-  /*TODO
-  data: {
-    walletName: 钱包名,
-    password: 密码
-  }
-   */
-    event.sender.send('create-wallet-result', {});
-});
-// 导出 Keystore 文件
-ipcMain.on('export-keystore', function (event, data) {
-  /*TODO
-  data: {
-    accountNick: 文件名,
-     savePrivPath: 导出路径
-  }
-   */
-  event.sender.send('export-keystore-result', {});
-});
-// 导入钱包
-ipcMain.on('import-keystore', function (event, data) {
-  /*TODO
-  data: {
-    Keystore: 文件路径（需要校验）,
-     newWalletName: 新钱包名（可为空）,
-     password: Keystore密码
-  }
-   */
-  event.sender.send('import-keystore-result', {});
-});
-// 登录
-ipcMain.on('login', function (event, data) {
-  /*TODO
-  返回session
-  data: {
-    walletName: 钱包名,
-     password: Keystore密码
-  }
-   */
-  event.sender.send('login-result',
-    {
-      data: {
-        session: 'FHSUDHFEJHFDSJHF23'
-      }
-    });
-});
-// 获取本地的钱包
-ipcMain.on('get-user-wallet', function (event, data) {
-  /*TODO
-  返回所有的钱包名
-   */
-  event.sender.send('get-user-wallet-result',
-    {
-      data: ['123']
-    });
-});
+const wallet = new Wallet(app, ipcMain);
+wallet.addListeners();
