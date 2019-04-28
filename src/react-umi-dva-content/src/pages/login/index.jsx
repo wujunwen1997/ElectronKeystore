@@ -63,7 +63,7 @@ class Login extends Component {
             </Button>
           </Form.Item>
         </Form>
-        <LinkOpt/>
+        <LinkOpt create={true} imports={true}/>
       </div>
     )
   }

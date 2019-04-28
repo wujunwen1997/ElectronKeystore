@@ -1,7 +1,6 @@
 import React, {Component} from 'react'
 import s from './index.scss'
 import {Form, Input, Button, Icon, message} from 'antd';
-import Link from 'umi/link'
 import {remote} from '../../../config/Electron.js'
 import {checkWalletName} from '@/utils/index'
 import {ipcRenderer} from '@/config/Electron.js'
@@ -78,7 +77,7 @@ class RouterComponent extends Component {
             <Button htmlType="submit" block>导入钱包</Button>
           </Form.Item>
         </Form>
-        <LinkOpt createWallet={true}/>
+        <LinkOpt create={true} login={true}/>
       </div>
     )
   }

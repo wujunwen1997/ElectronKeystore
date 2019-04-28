@@ -1,9 +1,6 @@
 .create{
-  width: 360px;min-height: 400px;margin: auto;text-align: center;padding-top: 12vh;
+  width: 360px;
   .title{color: white;font-size: 22px;margin-bottom: 8px}
-  >span{
-    color: white;font-size: 12px;line-height: 16px;opacity: 0.8;
-  }
   :global .login-form {
     margin-top: 20px;
     .ant-input-affix-wrapper {

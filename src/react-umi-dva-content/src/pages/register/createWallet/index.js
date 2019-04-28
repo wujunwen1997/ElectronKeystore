@@ -1,7 +1,6 @@
-import React, {Component, Fragment} from 'react'
+import React, {Component} from 'react'
 import s from './index.scss'
 import {Form, Input, Button, message} from 'antd';
-import Link from 'umi/link'
 import router from 'umi/router';
 import { connect } from 'dva'
 import {checkWalletName} from '@/utils/index'
@@ -18,7 +17,7 @@ class RouterComponent extends Component {
     loading: false
   }
   render() {
-    const { form, dispatch } = this.props;
+    const { form } = this.props;
     const { getFieldDecorator } = form;
     const checkPassword = (rule, value, callback) => {
       let reg = /^([a-z0-9\.\@\!\#\$\%\^\&\*\(\)]){8,20}$/i;
@@ -43,7 +42,6 @@ class RouterComponent extends Component {
     return (
       <div className={s.create}>
         <p className={s.title}>创建钱包</p>
-        <span>警示：密码不可重置，密码不可找回，请牢记密码！</span>
         <Form onSubmit={handleSubmit} className="login-form">
           <Form.Item hasFeedback>
             {getFieldDecorator('walletName', {
@@ -76,7 +74,7 @@ class RouterComponent extends Component {
             <Button htmlType="submit" block loading={this.state.loading}>创建钱包</Button>
           </Form.Item>
         </Form>
-        <LinkOpt/>
+        <LinkOpt login={true} imports={true}/>
       </div>
     )
   }

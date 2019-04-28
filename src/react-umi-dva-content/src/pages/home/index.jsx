@@ -1,6 +1,5 @@
 import React, {Component} from 'react'
 import router from "umi/router";
-import {message} from "antd";
 
 class HomeComponent extends Component {
   goBackRouter = () => {

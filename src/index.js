@@ -186,6 +186,6 @@ ipcMain.on('get-user-wallet', function (event, data) {
    */
   event.sender.send('get-user-wallet-result',
     {
-      data: ['123']
+      data: []
     });
 });

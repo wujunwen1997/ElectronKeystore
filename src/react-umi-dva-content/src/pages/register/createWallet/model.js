@@ -1,5 +1,3 @@
-import { stringify } from 'qs'
-
 export default {
   namespace: 'createWallet',
   state: {

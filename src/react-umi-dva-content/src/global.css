@@ -1,9 +1,9 @@
-
+@import "http://at.alicdn.com/t/font_1167128_45kjugsht8e.css";
 html, body, #root {
   height: 100%;
 }
 body {
-  height: 100%;  font-size: 14px;background: rgb(190, 200, 200);
+  height: 100%;  font-size: 14px;background: url("./assets/bg.png") no-repeat;background-size: 100% 100%;
   -moz-osx-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -18,5 +18,8 @@ li{
 }
 a{
   text-decoration: none
+}
+#root{
+  display: flex;justify-content: center;align-items: center;width: 100%;
 }
 

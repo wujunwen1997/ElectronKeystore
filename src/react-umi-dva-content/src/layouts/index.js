@@ -1,5 +1,4 @@
-import React, {Component, Fragment} from 'react'
-import styles from './index.css';
+import React, {Component} from 'react'
 import needLog from './needLog/index'
 import logged from './logged/index'
 

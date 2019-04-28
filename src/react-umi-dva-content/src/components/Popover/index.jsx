@@ -1,5 +1,5 @@
 import React, {PureComponent} from 'react'
-import { Popover, Button } from 'antd';
+import { Popover } from 'antd';
 import PropTypes from 'prop-types';
 
 class PopoverComponents extends PureComponent {

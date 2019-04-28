@@ -44,7 +44,7 @@ class RouterComponent extends PureComponent {
             导出 Keystore 文件
           </Button>
         </div>
-        <LinkOpt/>
+        <LinkOpt login={true} imports={true}/>
       </Fragment>
     )
   }
