@@ -1,4 +1,5 @@
 const path = require('path');
+const glob = require('glob');
 const fs = require('fs');
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
@@ -99,11 +100,31 @@ export class Wallet {
             self.closeWallet();
             event.sender.send('logout-result', {data: true, errorMsg: null});
         });
+
+        /*
+        获取本地所有的钱包文件名，参数无
+        返回结果result
+        {
+          data: [string,..], // 获取成功返回钱包名的数组，如果获取失败errorMsg会包含失败原因
+          errorMsg: null
+        }
+         */
+        self.ipcMain.on('get-user-wallet', function (event) {
+            const userDataPath = self.getWalletPath();
+            const filenames = glob.sync(path.join(userDataPath, '*.wallet'));
+            let namesWithoutExtension = [];
+            filenames.forEach((filename) => { namesWithoutExtension.push(path.parse(filename).name); });
+            event.sender.send('get-user-wallet-result', {data: namesWithoutExtension, errorMsg: null});
+        });
+    }
+
+    getWalletPath() {
+        return this.isDevMode ? __dirname : this.app.getPath('userData');
     }
 
     openWallet(walletName, firstCreate) {
         // 如果是开发者模式，钱包文件就存放在当前目录
-        const userDataPath = this.isDevMode ? __dirname : this.app.getPath('userData');
+        const userDataPath = this.getWalletPath();
         const walletPath = path.join(userDataPath, `${walletName}.wallet`);
 
         // 如果是首次创建，要检查文件是否已存在
