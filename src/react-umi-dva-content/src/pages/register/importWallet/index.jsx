@@ -1,30 +1,50 @@
 import React, {Component} from 'react'
 import s from './index.scss'
-import {Form, Input, Button, Icon} from 'antd';
+import {Form, Input, Button, Icon, message} from 'antd';
 import Link from 'umi/link'
-import {remote} from '../../config/Electron.js'
+import {remote} from '../../../config/Electron.js'
 import {checkWalletName} from '@/utils/index'
+import {ipcRenderer} from '@/config/Electron.js'
+import LinkOpt from '@/components/LinkOpts'
+import router from "umi/router";
 
+ipcRenderer.on("import-keystore-result", function (event, arg) {
+  message.success('钱包导入成功！')
+  router.push('/login');
+});
 class RouterComponent extends Component {
+  state = {
+    recoverAccountFrm: {
+      accountNick: '',
+      accountPrivatekeyFilePath: '',
+      accountPwd: ''
+    },
+  }
   handleSubmit = (e) => {
     e.preventDefault();
     this.props.form.validateFields((err, values) => {
       if (!err) {
-        console.log('Received values of form: ', values);
+        ipcRenderer.send("import-keystore", values);
       }
     });
   }
   render() {
     const { getFieldDecorator } = this.props.form;
     const onImport = () => {
-      console.log(remote)
       const { dialog } = remote
       let that = this
       dialog.showOpenDialog({title: '链付：Keystore 文件导入', filters: [{name: 'wallet', extensions: ['wallet']}]}, function (filePaths) {
-        console.log(filePaths)
-        // if (filePaths.length > 0) {
-          // that.recoverAccountFrm.accountPrivatekeyFilePath = filePaths[0]
-        // }
+        if (filePaths) {
+          if (filePaths.length > 0) {
+            that.setState({
+            recoverAccountFrm: Object.assign(that.state.recoverAccountFrm, {accountPrivatekeyFilePath: filePaths[0]})
+          })
+          } else {
+            message.warning('选择文件为空！');
+          }
+        } else {
+          message.warning('选择文件为空！');
+        }
       })
     }
     return (
@@ -34,9 +54,10 @@ class RouterComponent extends Component {
         <Form onSubmit={this.handleSubmit} className="login-form">
           <Form.Item>
             {getFieldDecorator('Keystore', {
-              rules: [{ required: true, message: 'Please input your username!' }],
+              rules: [{ required: true, message: '请导入钱包文件！' }],
+              initialValue: this.state.recoverAccountFrm.accountPrivatekeyFilePath
             })(
-              <Input prefix='Keystore文件' placeholder="请选择" disabled={true} addonAfter={<Icon type="plus" onClick={onImport}/>}/>
+              <Input prefix='Keystore文件' placeholder="推荐使用右侧导入功能"  addonAfter={<Icon type="plus" onClick={onImport}/>}/>
             )}
           </Form.Item>
           <Form.Item hasFeedback>
@@ -57,11 +78,7 @@ class RouterComponent extends Component {
             <Button htmlType="submit" block>导入钱包</Button>
           </Form.Item>
         </Form>
-        <ul className={s.bot}>
-          <li><Link to='/login'>登录钱包</Link></li>
-          <li>|</li>
-          <li><Link to='/createWallet'>创建钱包</Link></li>
-        </ul>
+        <LinkOpt createWallet={true}/>
       </div>
     )
   }

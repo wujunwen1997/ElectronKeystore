@@ -1,0 +1,13 @@
+.createSuccess{
+  width: 480px; height: 266px;text-align: center;background: white;margin: auto;
+  margin-top: 15vh;padding: 40px 25px 0;
+  >i{
+    font-size: 40px;
+  }
+  :global .ant-alert-warning{
+    font-size: 12px;
+  }
+  :global .ant-btn-block{
+    margin-top: 20px;
+  }
+}

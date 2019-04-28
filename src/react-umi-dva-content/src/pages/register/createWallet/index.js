@@ -1,18 +1,24 @@
-import React, {Component} from 'react'
+import React, {Component, Fragment} from 'react'
 import s from './index.scss'
 import {Form, Input, Button, message} from 'antd';
 import Link from 'umi/link'
+import router from 'umi/router';
 import { connect } from 'dva'
 import {checkWalletName} from '@/utils/index'
 import {ipcRenderer} from '@/config/Electron.js'
+import LinkOpt from '@/components/LinkOpts'
 
+ipcRenderer.on("create-wallet-result", function (event, arg) {
+  message.success('创建成功！')
+  router.push('/register/createWalletSuccess');
+});
 @connect(({loading}) => ({loading}))
 class RouterComponent extends Component {
   state = {
     loading: false
   }
   render() {
-    const { form, loading, dispatch } = this.props;
+    const { form, dispatch } = this.props;
     const { getFieldDecorator } = form;
     const checkPassword = (rule, value, callback) => {
       let reg = /^([a-z0-9\.\@\!\#\$\%\^\&\*\(\)]){8,20}$/i;
@@ -27,22 +33,10 @@ class RouterComponent extends Component {
     }
     const handleSubmit = (e) => {
       e.preventDefault();
-      let that = this
-      that.props.form.validateFields((err, values) => {
+      this.props.form.validateFields((err, values) => {
         if (!err) {
           delete values.surePassword
-          // console.log('Received values of form: ', values);
-          that.setState({loading: true})
           ipcRenderer.send("create-wallet", values);
-          // 成功
-          ipcRenderer.on("create-wallet-result", function (event, arg) {
-            // dispatch({
-            //   type: 'createWallet/info',
-            //   payload: arg
-            // });
-            that.setState({loading: false})
-            message.success('创建成功！')
-          });
         }
       });
     }
@@ -82,11 +76,7 @@ class RouterComponent extends Component {
             <Button htmlType="submit" block loading={this.state.loading}>创建钱包</Button>
           </Form.Item>
         </Form>
-        <ul className={s.bot}>
-          <li><Link to='/login'>登录钱包</Link></li>
-          <li>|</li>
-          <li><Link to='/importWallet'>钱包导入</Link></li>
-        </ul>
+        <LinkOpt/>
       </div>
     )
   }

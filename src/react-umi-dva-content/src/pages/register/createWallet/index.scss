@@ -15,16 +15,4 @@
       }
     }
   }
-  .bot{
-    display: flex ;justify-content: center;
-    a{
-      color: #f3f3f3;
-    }
-    li {
-      &:nth-child(2){
-        margin: 0 15px;line-height: 18px;color: #e8e7e9;
-      }
-      &:hover a{color: #f5fffa;}
-    }
-  }
 }

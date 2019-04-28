@@ -2,7 +2,7 @@
 // https://github.com/electron/update-electron-app
 
 import { app, BrowserWindow, ipcMain } from 'electron';
-import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer';
+import installExtension, { REACT_DEVELOPER_TOOLS } from 'electron-devtools-installer';
 import { enableLiveReload } from 'electron-compile';
 
 // Keep a global reference of the window object, if you don't, the window will
@@ -33,7 +33,7 @@ const createWindow = async () => {
   // Open the DevTools.
   if (isDevMode) {
     mainWindow.loadURL(`http:localhost:8000`);
-    await installExtension(VUEJS_DEVTOOLS);
+    await installExtension(REACT_DEVELOPER_TOOLS);
     mainWindow.webContents.openDevTools();
     require('devtron').install();
   } else {
@@ -134,6 +134,58 @@ ipcMain.on('query-all-item', function (event) {
 });
 // 创建钱包
 ipcMain.on('create-wallet', function (event, data) {
-  console.log(456, data)
-    event.sender.send('create-wallet-result', {data: 123});
+  /*TODO
+  data: {
+    walletName: 钱包名,
+    password: 密码
+  }
+   */
+    event.sender.send('create-wallet-result', {});
+});
+// 导出 Keystore 文件
+ipcMain.on('export-keystore', function (event, data) {
+  /*TODO
+  data: {
+    accountNick: 文件名,
+     savePrivPath: 导出路径
+  }
+   */
+  event.sender.send('export-keystore-result', {});
+});
+// 导入钱包
+ipcMain.on('import-keystore', function (event, data) {
+  /*TODO
+  data: {
+    Keystore: 文件路径（需要校验）,
+     newWalletName: 新钱包名（可为空）,
+     password: Keystore密码
+  }
+   */
+  event.sender.send('import-keystore-result', {});
+});
+// 登录
+ipcMain.on('login', function (event, data) {
+  /*TODO
+  返回session
+  data: {
+    walletName: 钱包名,
+     password: Keystore密码
+  }
+   */
+  event.sender.send('login-result',
+    {
+      data: {
+        session: 'FHSUDHFEJHFDSJHF23'
+      }
+    });
+});
+// 获取本地的钱包
+ipcMain.on('get-user-wallet', function (event, data) {
+  /*TODO
+  返回所有的钱包名
+   */
+  event.sender.send('get-user-wallet-result',
+    {
+      data: ['123']
+    });
 });

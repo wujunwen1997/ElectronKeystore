@@ -1,18 +1,72 @@
 import React, {Component} from 'react'
-import { Button } from 'antd';
+import {Form, Icon, Input, Button, Select, message} from 'antd';
 import s from './index.scss'
-import Link from 'umi/link'
+import {ipcRenderer} from '@/config/Electron.js'
+import LinkOpt from '@/components/LinkOpts'
+import router from "umi/router";
+// import cookie from '../../utils/cookie'
+const { Option } = Select;
+let walletsArr = [];
 
-class RouterComponent extends Component {
+ipcRenderer.on("login-result", function (event, arg) {
+  message.success('登录成功！')
+  let storage = window.localStorage
+  storage.setItem('token', arg.data.session)
+  router.push('/home');
+});
+class Login extends Component {
+  handleSubmit = (e) => {
+    e.preventDefault();
+    this.props.form.validateFields((err, values) => {
+      if (!err) {
+        ipcRenderer.send("login", values);
+      }
+    });
+  }
   render() {
+    const { getFieldDecorator } = this.props.form;
+    ipcRenderer.on("get-user-wallet-result", function (event, arg) {
+      if (arg.data && arg.data.length > 0) {
+        walletsArr = arg.data
+      } else {
+        router.push('/welcome');
+        walletsArr = []
+      }
+    });
     return (
-      <div className={s.log}>
-        <p className={s.tle}>欢迎使用链付钱包</p>
-        <Button ghost block className={s.btn}><Link to='/createWallet'>创建钱包</Link></Button>
-        <Button ghost block className={s.btn}><Link to='/importWallet'>导入钱包</Link></Button>
+      <div className={s.login}>
+          <p>登录</p>
+        <Form onSubmit={this.handleSubmit} className="login-form">
+          <Form.Item hasFeedback>
+            {getFieldDecorator('walletName', {
+              rules: [{ required: true, message: 'Please input your username!' }],
+            })(
+              <Select>
+                {
+                  walletsArr.map(u=> {
+                    return <Option value={u}>{u}</Option>
+                  })
+                }
+              </Select>
+            )}
+          </Form.Item>
+          <Form.Item hasFeedback>
+            {getFieldDecorator('password', {
+              rules: [{ required: true, message: 'Please input your Password!' }],
+            })(
+              <Input prefix={<Icon type="lock" style={{ color: 'rgba(0,0,0,.25)' }} />} type="password" placeholder="Password" />
+            )}
+          </Form.Item>
+          <Form.Item>
+            <Button type="primary" htmlType="submit" className="login-form-button">
+             登录
+            </Button>
+          </Form.Item>
+        </Form>
+        <LinkOpt/>
       </div>
     )
   }
 }
 
-export default RouterComponent
+export default Form.create({ name: 'login' })(Login);
