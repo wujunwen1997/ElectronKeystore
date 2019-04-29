@@ -7,8 +7,8 @@ class BasicLayout extends Component{
   render () {
     const Container = needLog;
     const { children } = this.props;
-    const storage = window.localStorage
-    const MyLayout = storage.getItem('token') ? logged : Container
+    const storage = window.localStorage;
+    const MyLayout = storage.getItem('token') ? logged : Container;
     return (
       <MyLayout>
         {children}

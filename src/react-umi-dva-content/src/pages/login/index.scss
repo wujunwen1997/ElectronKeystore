@@ -1,6 +1,11 @@
 .login{
-  width: 360px;height: 250px;margin: auto;padding-top: 15vh;text-align: center;
+  width: 350px;text-align: center;
   >p{
-    font-size: 22px;color: white;
+    font-size: 18px;color: white;margin-bottom: 25px;font-weight:500;
+  }
+  .login-form{
+    :global .ant-form-item{
+      background: white;
+    }
   }
 }

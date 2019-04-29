@@ -49,7 +49,6 @@ class RouterComponent extends Component {
     return (
       <div className={s.import}>
         <p className={s.title}>钱包导入</p>
-        <div className={s.tip}>提示：通过钱包Keystore 文件导入！</div>
         <Form onSubmit={this.handleSubmit} className="login-form">
           <Form.Item>
             {getFieldDecorator('Keystore', {

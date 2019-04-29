@@ -1,0 +1,94 @@
+Arguments: 
+  C:\Program Files\nodejs\node.exe C:\Users\blockchain\AppData\Roaming\npm\node_modules\yarn\bin\yarn.js add sqlite3 -s
+
+PATH: 
+  C:\Program Files (x86)\NetSarang\Xftp 6\;C:\Program Files (x86)\NetSarang\Xshell 6\;C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files\Git\cmd;C:\Program Files\Java\jdk1.8.0_201\bin;C:\Program Files\Java\jdk1.8.0_201\jre\bin;C:\Program Files\dotnet\;C:\Program Files\Microsoft SQL Server\130\Tools\Binn\;C:\Program Files\nodejs\;C:\Users\blockchain\AppData\Local\Microsoft\WindowsApps;C:\Users\blockchain\AppData\Local\Programs\Microsoft VS Code\bin;C:\Program Files\Weex Studio\bin;C:\Python27;C:\Users\blockchain\AppData\Roaming\npm
+
+Yarn version: 
+  1.15.2
+
+Node version: 
+  10.15.3
+
+Platform: 
+  win32 x64
+
+Trace: 
+  Error: ENOENT: no such file or directory, copyfile 'C:\Users\blockchain\AppData\Local\Yarn\Cache\v4\npm-ansi-styles-2.2.1-b432dd3358b634cf75e1e4664368240533c1ddbe\node_modules\ansi-styles\index.js' -> 'C:\work\rrjjWork\wallet\node_modules\@paulcbetts\vueify\node_modules\ansi-styles\index.js'
+
+npm manifest: 
+  {
+    "name": "chainspay-wallet",
+    "productName": "Chainspay Wallet",
+    "version": "1.0.0",
+    "description": "Chainspay Wallet is a batch key manager and tx singer",
+    "main": "src/index.js",
+    "scripts": {
+      "start": "electron-forge start",
+      "package": "electron-forge package",
+      "make": "electron-forge make",
+      "publish": "electron-forge publish",
+      "lint": "echo \"No linting configured\""
+    },
+    "keywords": [],
+    "author": "sbwdlihao",
+    "repository": "https://code.aliyun.com/bitconnect/wallet.git",
+    "license": "MIT",
+    "config": {
+      "forge": {
+        "make_targets": {
+          "win32": [
+            "squirrel"
+          ],
+          "darwin": [
+            "zip"
+          ],
+          "linux": [
+            "deb",
+            "rpm"
+          ]
+        },
+        "electronPackagerConfig": {
+          "packageManager": "npm"
+        },
+        "electronWinstallerConfig": {
+          "name": "chainspay_wallet"
+        },
+        "electronInstallerDebian": {},
+        "electronInstallerRedhat": {},
+        "github_repository": {
+          "owner": "",
+          "name": ""
+        },
+        "windowsStoreConfig": {
+          "packageName": "",
+          "name": "chainspaywallet"
+        }
+      }
+    },
+    "dependencies": {
+      "electron": "^4.1.4",
+      "electron-compile": "^6.4.4",
+      "electron-devtools-installer": "^2.2.4",
+      "electron-settings": "^3.0.7",
+      "electron-shortcut-normalizer": "^1.0.0",
+      "electron-squirrel-startup": "^1.0.0",
+      "knex": "^0.16.5",
+      "sqlite3": "^4.0.6",
+      "vue": "^2.6.10"
+    },
+    "devDependencies": {
+      "babel-plugin-transform-async-to-generator": "^6.24.1",
+      "babel-preset-env": "^1.7.0",
+      "babel-preset-react": "^6.24.1",
+      "electron-forge": "^5.2.4",
+      "electron-prebuilt-compile": "4.0.0",
+      "devtron": "^1.3.0"
+    }
+  }
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile

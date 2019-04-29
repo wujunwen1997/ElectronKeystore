@@ -8,8 +8,12 @@ import {ipcRenderer} from '@/config/Electron.js'
 import LinkOpt from '@/components/LinkOpts'
 
 ipcRenderer.on("create-wallet-result", function (event, arg) {
-  message.success('创建成功！')
-  router.push('/register/createWalletSuccess');
+  if (arg.data) {
+    message.success('创建成功！')
+    router.push('/login');
+  } else {
+    message.error('创建失败 ', arg.errorMsg);
+  }
 });
 @connect(({loading}) => ({loading}))
 class RouterComponent extends Component {

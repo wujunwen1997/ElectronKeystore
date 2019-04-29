@@ -68,8 +68,8 @@ export class Wallet {
                         event.sender.send('login-result', {data: false, errorMsg: '钱包文件中没有密码信息'});
                         return;
                     }
-                    const hash = rows[0];
-                    const salt = rows[1];
+                    const hash = rows[0].password_hash;
+                    const salt = rows[0].salt;
                     crypto.pbkdf2(data.password, salt, 1000, 64, 'sha512', (err, hash1) => {
                         if (hash1.toString('hex') === hash) {
                             event.sender.send('login-result', {data: true, errorMsg: null});
