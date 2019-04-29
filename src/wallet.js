@@ -56,12 +56,10 @@ export class Wallet {
         }
          */
         self.ipcMain.on('login', function (event, data) {
-            if (self.knex !== undefined) {
-                event.sender.send('login-result', {data: false, errorMsg: '请先登出当前钱包'});
-                return;
-            }
             try {
-                self.openWallet(data.walletName, false);
+                if (self.knex === undefined) {
+                    self.openWallet(data.walletName, false);
+                }
                 let result = self.knex.select('*').from(TABLE_PASSWORD);
                 result.then(function(rows){
                     if (rows.length === 0) {
@@ -92,10 +90,6 @@ export class Wallet {
         }
          */
         self.ipcMain.on('logout', function (event) {
-            if (self.knex === undefined) {
-                event.sender.send('logout-result', {data: false, errorMsg: '尚未登录钱包'});
-                return;
-            }
             self.closeWallet();
             event.sender.send('logout-result', {data: true, errorMsg: null});
         });
@@ -155,6 +149,8 @@ export class Wallet {
     }
 
     closeWallet() {
-        this.knex = undefined;
+        if (this.knex !== undefined) {
+            this.knex = undefined;
+        }
     }
 }
