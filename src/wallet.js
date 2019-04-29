@@ -1,8 +1,7 @@
 const path = require('path');
 const glob = require('glob');
 const fs = require('fs');
-const bcrypt = require('bcrypt');
-const saltRounds = 10;
+const crypto = require('crypto');
 
 const TABLE_PASSWORD = 'password';
 
@@ -30,19 +29,19 @@ export class Wallet {
         self.ipcMain.on('create-wallet', function (event, data) {
             try {
                 self.openWallet(data.walletName, true);
+                self.initTable(function () {
+                    let salt = crypto.randomBytes(16).toString('hex');
+                    crypto.pbkdf2(data.password, salt, 1000, 64, 'sha512', (err, hash) => {
+                        self.knex(TABLE_PASSWORD)
+                            .insert({password_hash:hash.toString('hex'), salt})
+                            .then( function () {
+                                event.sender.send('create-wallet-result', {data: true, errorMsg: null});
+                            });
+                    });
+                });
             } catch (e) {
                 event.sender.send('create-wallet-result', {data: false, errorMsg: e.message});
-                return;
             }
-
-            bcrypt.hash(data.password, saltRounds, function(err, hash) {
-                // Store hash in DB.
-                self.knex(TABLE_PASSWORD)
-                    .insert({password_hash:hash})
-                    .then( function () {
-                        event.sender.send('create-wallet-result', {data: true, errorMsg: null});
-                    });
-            });
         });
 
         /*
@@ -63,25 +62,25 @@ export class Wallet {
             }
             try {
                 self.openWallet(data.walletName, false);
+                let result = self.knex.select('*').from(TABLE_PASSWORD);
+                result.then(function(rows){
+                    if (rows.length === 0) {
+                        event.sender.send('login-result', {data: false, errorMsg: '钱包文件中没有密码信息'});
+                        return;
+                    }
+                    const hash = rows[0];
+                    const salt = rows[1];
+                    crypto.pbkdf2(data.password, salt, 1000, 64, 'sha512', (err, hash1) => {
+                        if (hash1.toString('hex') === hash) {
+                            event.sender.send('login-result', {data: true, errorMsg: null});
+                        } else {
+                            event.sender.send('login-result', {data: false, errorMsg: '密码不正确'});
+                        }
+                    });
+                });
             } catch (e) {
                 event.sender.send('login-result', {data: false, errorMsg: e.message});
-                return;
             }
-            let result = self.knex.select("password_hash").from(TABLE_PASSWORD);
-            result.then(function(rows){
-                if (rows.length === 0) {
-                    event.sender.send('login-result', {data: false, errorMsg: 'password hash不存在'});
-                    return;
-                }
-                const hash = rows[0];
-                bcrypt.compare(data.password, hash, function(err, res) {
-                    if (res === true) {
-                        event.sender.send('login-result', {data: true, errorMsg: null});
-                    } else {
-                        event.sender.send('login-result', {data: false, errorMsg: '密码不正确'});
-                    }
-                });
-            });
         });
 
         /*
@@ -134,19 +133,23 @@ export class Wallet {
             throw new Error("钱包不存在");
         }
 
-        const self = this;
-        self.knex = require("knex")({
+        this.knex = require("knex")({
             client: "sqlite3",
             connection: {
                 filename: walletPath
             },
             useNullAsDefault: true
         });
+    }
+
+    initTable(afterInitSuccess) {
+        const self = this;
         self.knex.schema.hasTable(TABLE_PASSWORD).then(function(exists) {
             if (!exists) {
                 return self.knex.schema.createTable(TABLE_PASSWORD, function(table) {
                     table.string('password_hash').primary();
-                });
+                    table.string('salt');
+                }).then(afterInitSuccess);
             }
         });
     }
