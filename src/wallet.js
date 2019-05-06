@@ -162,7 +162,7 @@ export class Wallet {
                     event.sender.send('encrypt-data-result', {data: null, errorMsg: '网关配置不存在'});
                     return;
                 }
-                let cipher = crypto.createCipheriv('aes128', Buffer.from(self.gateWay.aesKey, 'base64'), Buffer.alloc(16, 0));
+                let cipher = crypto.createCipheriv('aes-128-cbc', Buffer.from(self.gateWay.aesKey, 'base64'), Buffer.alloc(16, 0));
                 let encrypt = cipher.update(JSON.stringify(data), 'utf8', 'base64');
                 encrypt += cipher.final('base64');
                 let body = self.gateWay.aesToken + encrypt;
@@ -199,7 +199,7 @@ export class Wallet {
                     return;
                 }
                 let encrypt = data.body.substring(self.gateWay.aesToken.length);
-                let decipher = crypto.createDecipheriv('aes128', Buffer.from(self.gateWay.aesKey, 'base64'), Buffer.alloc(16, 0));
+                let decipher = crypto.createDecipheriv('aes-128-cbc', Buffer.from(self.gateWay.aesKey, 'base64'), Buffer.alloc(16, 0));
                 let decrypt = decipher.update(encrypt, 'base64', 'utf8');
                 decrypt += decipher.final('utf8');
                 event.sender.send('decrypt-data-result', {data: JSON.parse(decrypt), errorMsg: null});
