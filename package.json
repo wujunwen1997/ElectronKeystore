@@ -22,21 +22,21 @@
           "squirrel"
         ],
         "darwin": [
-          "zip"
-        ],
-        "linux": [
-          "deb",
-          "rpm"
+          "dmg"
         ]
       },
       "electronPackagerConfig": {
-        "packageManager": "npm"
+        "packageManager": "npm",
+        "ignore": [".idea","src/react-umi-dva-content",".*\\.wallet"],
+        "icon": "assets/app-icon/app"
       },
       "electronWinstallerConfig": {
         "name": "chainspay_wallet"
       },
-      "electronInstallerDebian": {},
-      "electronInstallerRedhat": {},
+      "electronInstallerDMG": {
+        "background": "assets/dmg/background.png",
+        "icon": "assets/dmg/title.icns"
+      },
       "github_repository": {
         "owner": "",
         "name": ""

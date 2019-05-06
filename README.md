@@ -1,7 +1,3 @@
-## Requirements
-```shell
-node >= 10
-```
 ## Install
 先进入react-umi-dva-content进行依赖包安装
 ```shell
