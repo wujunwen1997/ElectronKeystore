@@ -4,7 +4,7 @@ const fs = require('fs');
 const crypto = require('crypto');
 
 const TABLE_PASSWORD = 'password';
-const TABLE_CHAINSPAY = 'chainspay';
+const TABLE_GATEWAY = 'gateway';
 
 export class Wallet {
 
@@ -114,23 +114,27 @@ export class Wallet {
         });
 
         /*
-        网关设置是否有配置
-        返回结果result, true有设置，false表示没有设置，如果data为null则表示获取网关设置是否有配置时出现异常
+        获取网关配置
+        返回结果result, 如果data为null,errorMsg也为null则表示网关还没有配置，如果data为null,errorMsg不为null则表示获取配置失败
         {
-          data: true,
+          data: {
+            aesKey:'',
+            aesToken:'',
+            url:''
+          },
           errorMsg: null
         }
          */
-        self.ipcMain.on('is-gateway-set', function (event) {
+        self.ipcMain.on('get-gateway', function (event) {
             try {
                 if (self.gateWay !== undefined) {
-                    event.sender.send('is-gateway-set-result', {data: true, errorMsg: null});
+                    event.sender.send('get-gateway-result', {data: self.gateWay, errorMsg: null});
                     return;
                 }
-                let result = self.knex.select('*').from(TABLE_CHAINSPAY);
+                let result = self.knex.select('*').from(TABLE_GATEWAY);
                 result.then(function(rows){
                     if (rows.length === 0) {
-                        event.sender.send('is-gateway-set-result', {data: false, errorMsg: null});
+                        event.sender.send('get-gateway-result', {data: null, errorMsg: null});
                         return;
                     }
                     self.gateWay = {
@@ -138,10 +142,47 @@ export class Wallet {
                         aesToken: rows[0].aes_token,
                         url: rows[0].url
                     };
-                    event.sender.send('is-gateway-set-result', {data: true, errorMsg: null});
+                    event.sender.send('get-gateway-result', {data: self.gateWay, errorMsg: null});
                 });
             } catch (e) {
-                event.sender.send('is-gateway-set-result', {data: null, errorMsg: e.message});
+                event.sender.send('get-gateway-result', {data: null, errorMsg: e.message});
+            }
+        });
+
+        /*
+        设置网关，参数data
+        {
+         aesKey:'',
+         aesToken:'',
+         url:''
+        }
+        返回结果result, true表示设置成功，false表示设置失败，如果设置失败errorMsg会包含失败原因
+        {
+          data: true,
+          errorMsg: null
+        }
+         */
+        self.ipcMain.on('set-gateway', function (event, data) {
+            try {
+                let result = self.knex.select('*').from(TABLE_GATEWAY);
+                result.then(function(rows){
+                    if (rows.length === 0) {
+                        self.knex(TABLE_GATEWAY)
+                            .insert({aes_key:data.aesKey, aes_token:data.aesToken, url:data.url})
+                            .then( function () {
+                                event.sender.send('set-gateway-result', {data: true, errorMsg: null});
+                            });
+                    } else {
+                        self.knex(TABLE_GATEWAY)
+                            .where('id', '=', rows[0].id)
+                            .update({aes_key:data.aesKey, aes_token:data.aesToken, url:data.url})
+                            .then(function () {
+                                event.sender.send('set-gateway-result', {data: true, errorMsg: null});
+                            })
+                    }
+                });
+            } catch (e) {
+                event.sender.send('set-gateway-result', {data: false, errorMsg: e.message});
             }
         });
 
@@ -220,17 +261,29 @@ export class Wallet {
 
         // 如果是首次创建，要检查文件是否已存在
         if (firstCreate && fs.existsSync(walletPath)) {
-            throw new Error("钱包已存在");
+            throw new Error('钱包已存在');
         } else if (!firstCreate && !fs.existsSync(walletPath)) {
-            throw new Error("钱包不存在");
+            throw new Error('钱包不存在');
         }
 
-        this.knex = require("knex")({
-            client: "sqlite3",
+        this.knex = require('knex')({
+            client: 'sqlite3',
             connection: {
                 filename: walletPath
             },
             useNullAsDefault: true
+        });
+
+        const self = this;
+        self.knex.schema.hasTable(TABLE_GATEWAY).then(function(exists) {
+            if (!exists) {
+                return self.knex.schema.createTable(TABLE_GATEWAY, function(table) {
+                    table.increments();
+                    table.string('aes_key');
+                    table.string('aes_token');
+                    table.string('url');
+                });
+            }
         });
     }
 
@@ -247,11 +300,7 @@ export class Wallet {
     }
 
     closeWallet() {
-        if (this.knex !== undefined) {
-            this.knex = undefined;
-        }
-        if (this.gateWay !== undefined) {
-            this.gateWay = undefined;
-        }
+        this.knex = undefined;
+        this.gateWay = undefined;
     }
 }
