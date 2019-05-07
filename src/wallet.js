@@ -1,10 +1,9 @@
 const path = require('path');
 const glob = require('glob');
 const fs = require('fs');
+const Database = require('better-sqlite3');
 const crypto = require('crypto');
-
-const TABLE_PASSWORD = 'password';
-const TABLE_GATEWAY = 'gateway';
+const bcrypto = require('blockchain-crypto');
 
 export class Wallet {
 
@@ -30,16 +29,16 @@ export class Wallet {
         const self = this;
         self.ipcMain.on('create-wallet', function (event, data) {
             try {
-                self.openWallet(data.walletName, true);
-                self.initTable(function () {
-                    let salt = crypto.randomBytes(16).toString('hex');
-                    crypto.pbkdf2(data.password, salt, 1000, 64, 'sha512', (err, hash) => {
-                        self.knex(TABLE_PASSWORD)
-                            .insert({password_hash:hash.toString('hex'), salt})
-                            .then( function () {
-                                event.sender.send('create-wallet-result', {data: true, errorMsg: null});
-                            });
-                    });
+                self.openWallet(data.walletName);
+                let salt = crypto.randomBytes(16).toString('hex');
+                crypto.pbkdf2(data.password, salt, 1000, 64, 'sha512', (err, hash) => {
+                    const stmt = self.knex.prepare('INSERT INTO password VALUES (?, ?)');
+                    const info = stmt.run(hash.toString('hex'), salt);
+                    if (info.changes === 1) {
+                        event.sender.send('create-wallet-result', {data: true, errorMsg: null});
+                    } else {
+                        event.sender.send('create-wallet-result', {data: false, errorMsg: '密码保存失败'});
+                    }
                 });
             } catch (e) {
                 event.sender.send('create-wallet-result', {data: false, errorMsg: e.message});
@@ -60,24 +59,22 @@ export class Wallet {
          */
         self.ipcMain.on('login', function (event, data) {
             try {
-                if (self.knex === undefined) {
-                    self.openWallet(data.walletName, false);
+                self.openWallet(data.walletName);
+                const stmt = self.knex.prepare('SELECT * FROM password');
+                const info = stmt.get();
+                if (info === undefined) {
+                    event.sender.send('login-result', {data: false, errorMsg: '钱包文件中没有密码信息'});
+                    return;
                 }
-                let result = self.knex.select('*').from(TABLE_PASSWORD);
-                result.then(function(rows){
-                    if (rows.length === 0) {
-                        event.sender.send('login-result', {data: false, errorMsg: '钱包文件中没有密码信息'});
-                        return;
+                const hash = info.password_hash;
+                const salt = info.salt;
+                crypto.pbkdf2(data.password, salt, 1000, 64, 'sha512', (err, hash1) => {
+                    if (hash1.toString('hex') === hash) {
+                        self.aesKey = crypto.scryptSync(data.password, 'chainspay', 16);
+                        event.sender.send('login-result', {data: true, errorMsg: null});
+                    } else {
+                        event.sender.send('login-result', {data: false, errorMsg: '密码不正确'});
                     }
-                    const hash = rows[0].password_hash;
-                    const salt = rows[0].salt;
-                    crypto.pbkdf2(data.password, salt, 1000, 64, 'sha512', (err, hash1) => {
-                        if (hash1.toString('hex') === hash) {
-                            event.sender.send('login-result', {data: true, errorMsg: null});
-                        } else {
-                            event.sender.send('login-result', {data: false, errorMsg: '密码不正确'});
-                        }
-                    });
                 });
             } catch (e) {
                 event.sender.send('login-result', {data: false, errorMsg: e.message});
@@ -115,7 +112,7 @@ export class Wallet {
 
         /*
         获取网关配置
-        返回结果result, 如果data为null,errorMsg也为null则表示网关还没有配置，如果data为null,errorMsg不为null则表示获取配置失败
+        返回结果result, 如果data为null则表示网关配置不存在或者获取失败，errorMsg会包含错误信息
         {
           data: {
             aesKey:'',
@@ -131,19 +128,18 @@ export class Wallet {
                     event.sender.send('get-gateway-result', {data: self.gateWay, errorMsg: null});
                     return;
                 }
-                let result = self.knex.select('*').from(TABLE_GATEWAY);
-                result.then(function(rows){
-                    if (rows.length === 0) {
-                        event.sender.send('get-gateway-result', {data: null, errorMsg: null});
-                        return;
-                    }
-                    self.gateWay = {
-                        aesKey: rows[0].aes_key,
-                        aesToken: rows[0].aes_token,
-                        url: rows[0].url
-                    };
-                    event.sender.send('get-gateway-result', {data: self.gateWay, errorMsg: null});
-                });
+                const stmt = self.knex.prepare('SELECT * FROM gateway');
+                const info = stmt.get();
+                if (info === undefined) {
+                    event.sender.send('get-gateway-result', {data: null, errorMsg: '网关配置不存在'});
+                    return;
+                }
+                self.gateWay = {
+                    aesKey: info.aes_key,
+                    aesToken: info.aes_token,
+                    url: info.url
+                };
+                event.sender.send('get-gateway-result', {data: self.gateWay, errorMsg: null});
             } catch (e) {
                 event.sender.send('get-gateway-result', {data: null, errorMsg: e.message});
             }
@@ -164,23 +160,24 @@ export class Wallet {
          */
         self.ipcMain.on('set-gateway', function (event, data) {
             try {
-                let result = self.knex.select('*').from(TABLE_GATEWAY);
-                result.then(function(rows){
-                    if (rows.length === 0) {
-                        self.knex(TABLE_GATEWAY)
-                            .insert({aes_key:data.aesKey, aes_token:data.aesToken, url:data.url})
-                            .then( function () {
-                                event.sender.send('set-gateway-result', {data: true, errorMsg: null});
-                            });
-                    } else {
-                        self.knex(TABLE_GATEWAY)
-                            .where('id', '=', rows[0].id)
-                            .update({aes_key:data.aesKey, aes_token:data.aesToken, url:data.url})
-                            .then(function () {
-                                event.sender.send('set-gateway-result', {data: true, errorMsg: null});
-                            })
+                const select = self.knex.prepare('SELECT * FROM gateway');
+                const selectInfo = select.get();
+                if (selectInfo === undefined) {
+                    const insert = self.knex.prepare('INSERT INTO gateway VALUES (?, ?, ?)');
+                    const insertInfo = insert.run(data.url, data.aesKey, data.aesToken);
+                    if (insertInfo.changes === 1) {
+                        event.sender.send('set-gateway-result', {data: true, errorMsg: null});
+                        return;
                     }
-                });
+                } else {
+                    const update = self.knex.prepare('UPDATE gateway SET url = ?, aes_key = ?, aes_token = ?');
+                    const updateInfo = update.run(data.url, data.aesKey, data.aesToken);
+                    if (updateInfo.changes === 1) {
+                        event.sender.send('set-gateway-result', {data: true, errorMsg: null});
+                        return;
+                    }
+                }
+                event.sender.send('set-gateway-result', {data: false, errorMsg: '设置网关失败'});
             } catch (e) {
                 event.sender.send('set-gateway-result', {data: false, errorMsg: e.message});
             }
@@ -248,59 +245,109 @@ export class Wallet {
                 event.sender.send('decrypt-data-result', {data: null, errorMsg: e.message});
             }
         });
+
+        /*
+        导入wif，参数data是string
+        返回结果result, 成功返回导入数据，如果导入出现异常则返回异常原因
+        {
+          data: {
+            success:1, // 成功新增
+            fail:0, // wif格式不正确，无法导入
+            duplicate:0 // wif格式正确但数据库已存在
+          },
+          errorMsg: null,
+        }
+         */
+        self.ipcMain.on('import-wif', function (event, data) {
+            try {
+                let success = 0;
+                let fail = 0;
+                let duplicate = 0;
+                data.replace(/\n/g, " ").split(" ").forEach(function (wif) {
+                    let importResult = self.importWif(wif);
+                    if (importResult === undefined) {
+                        fail += 1;
+                    } else {
+                        const select = self.knex.prepare('SELECT * FROM key WHERE pubkey_hash = ?');
+                        const selectInfo = select.get(importResult.pubkeyHash);
+                        if (selectInfo === undefined) {
+                            const insert = self.knex.prepare('INSERT INTO key VALUES (?, ?, ?)');
+                            const insertInfo = insert.run(importResult.pubkeyHash, importResult.encryptKey, new Date().getTime());
+                            if (insertInfo.changes === 1) {
+                                success += 1;
+                            } else {
+                                fail += 1;
+                            }
+                        } else {
+                            duplicate += 1;
+                        }
+                    }
+                });
+                event.sender.send('import-wif-result', {data: {success, fail, duplicate}, errorMsg: null});
+            } catch (e) {
+                event.sender.send('import-wif-result', {data: null, errorMsg: e.message});
+            }
+        });
+
+        /*
+        从文件导入wif，参数data是file
+        返回结果result, 成功返回导入数据，如果导入出现异常则返回异常原因
+        {
+          data: {
+            success:1,
+            fail:0,
+            duplicate:0
+          },
+          errorMsg: null,
+        }
+         */
+        self.ipcMain.on('import-wif-from-file', function (event, data) {
+            try {
+            } catch (e) {
+                event.sender.send('import-wif-from-file-result', {data: null, errorMsg: e.message});
+            }
+        });
     }
 
     getWalletPath() {
         return this.isDevMode ? __dirname : this.app.getPath('userData');
     }
 
-    openWallet(walletName, firstCreate) {
+    openWallet(walletName) {
         // 如果是开发者模式，钱包文件就存放在当前目录
         const userDataPath = this.getWalletPath();
         const walletPath = path.join(userDataPath, `${walletName}.wallet`);
 
-        // 如果是首次创建，要检查文件是否已存在
-        if (firstCreate && fs.existsSync(walletPath)) {
-            throw new Error('钱包已存在');
-        } else if (!firstCreate && !fs.existsSync(walletPath)) {
-            throw new Error('钱包不存在');
-        }
-
-        this.knex = require('knex')({
-            client: 'sqlite3',
-            connection: {
-                filename: walletPath
-            },
-            useNullAsDefault: true
-        });
-
-        const self = this;
-        self.knex.schema.hasTable(TABLE_GATEWAY).then(function(exists) {
-            if (!exists) {
-                return self.knex.schema.createTable(TABLE_GATEWAY, function(table) {
-                    table.increments();
-                    table.string('aes_key');
-                    table.string('aes_token');
-                    table.string('url');
-                });
-            }
-        });
-    }
-
-    initTable(afterInitSuccess) {
-        const self = this;
-        self.knex.schema.hasTable(TABLE_PASSWORD).then(function(exists) {
-            if (!exists) {
-                return self.knex.schema.createTable(TABLE_PASSWORD, function(table) {
-                    table.string('password_hash').primary();
-                    table.string('salt');
-                }).then(afterInitSuccess);
-            }
-        });
+        this.knex = new Database(walletPath);
+        const init = fs.readFileSync(path.join(__dirname,'migrate','init.sql'), 'utf8');
+        this.knex.exec(init);
     }
 
     closeWallet() {
+        this.knex.close();
         this.knex = undefined;
+        this.aesKey = undefined;
         this.gateWay = undefined;
+    }
+
+    importWif(wif) {
+        // 每个链的每个网络都逐个尝试
+        let result = this.importBtcMainWif(wif);
+        if (result !== undefined) {
+            return result;
+        }
+        return undefined;
+    }
+
+    importBtcMainWif(wif) {
+        try {
+            let cipher = crypto.createCipheriv('aes-128-cbc', this.aesKey, Buffer.alloc(16, 0));
+            const key = bcrypto.btc.decode_key(wif);
+            const keyRaw = key.get_raw();
+            cipher.update(Buffer.from(keyRaw));
+            return {encryptKey:cipher.final('hex'), pubkeyHash:key.get_pubkey().key_id()}
+        } catch (e) {
+            return undefined;
+        }
     }
 }

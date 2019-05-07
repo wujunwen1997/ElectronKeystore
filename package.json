@@ -27,7 +27,11 @@
       },
       "electronPackagerConfig": {
         "packageManager": "npm",
-        "ignore": [".idea","src/react-umi-dva-content",".*\\.wallet"],
+        "ignore": [
+          ".idea",
+          "src/react-umi-dva-content",
+          ".*\\.wallet"
+        ],
         "icon": "assets/app-icon/app"
       },
       "electronWinstallerConfig": {
@@ -48,14 +52,13 @@
     }
   },
   "dependencies": {
+    "better-sqlite3": "^5.4.0",
     "electron": "^4.1.4",
     "electron-compile": "^6.4.4",
     "electron-devtools-installer": "^2.2.4",
     "electron-settings": "^3.0.7",
     "electron-shortcut-normalizer": "^1.0.0",
-    "electron-squirrel-startup": "^1.0.0",
-    "knex": "^0.16.5",
-    "sqlite3": "^4.0.6"
+    "electron-squirrel-startup": "^1.0.0"
   },
   "devDependencies": {
     "babel-plugin-transform-async-to-generator": "^6.24.1",
