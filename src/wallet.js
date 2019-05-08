@@ -141,20 +141,9 @@ export class Wallet {
             try {
                 if (self.gateWay !== undefined) {
                     event.sender.send('get-gateway-result', {data: self.gateWay, errorMsg: null});
-                    return;
-                }
-                const stmt = self.db.prepare('SELECT * FROM gateway');
-                const info = stmt.get();
-                if (info === undefined) {
+                } else {
                     event.sender.send('get-gateway-result', {data: null, errorMsg: '网关配置不存在'});
-                    return;
                 }
-                self.gateWay = {
-                    aesKey: info.aes_key,
-                    aesToken: info.aes_token,
-                    url: info.url
-                };
-                event.sender.send('get-gateway-result', {data: self.gateWay, errorMsg: null});
             } catch (e) {
                 event.sender.send('get-gateway-result', {data: null, errorMsg: e.message});
             }
@@ -181,6 +170,7 @@ export class Wallet {
                     const insert = self.db.prepare('INSERT INTO gateway VALUES (?, ?, ?)');
                     const insertInfo = insert.run(data.url, data.aesKey, data.aesToken);
                     if (insertInfo.changes === 1) {
+                        self.gateWay = data;
                         event.sender.send('set-gateway-result', {data: true, errorMsg: null});
                         return;
                     }
@@ -188,6 +178,7 @@ export class Wallet {
                     const update = self.db.prepare('UPDATE gateway SET url = ?, aes_key = ?, aes_token = ?');
                     const updateInfo = update.run(data.url, data.aesKey, data.aesToken);
                     if (updateInfo.changes === 1) {
+                        self.gateWay = data;
                         event.sender.send('set-gateway-result', {data: true, errorMsg: null});
                         return;
                     }
@@ -362,10 +353,10 @@ export class Wallet {
         this.walletName = walletName;
         this.walletPath = walletPath;
 
-        const stmt = self.db.prepare('SELECT * FROM gateway');
+        const stmt = this.db.prepare('SELECT * FROM gateway');
         const info = stmt.get();
         if (info !== undefined) {
-            self.gateWay = {
+            this.gateWay = {
                 aesKey: info.aes_key,
                 aesToken: info.aes_token,
                 url: info.url
