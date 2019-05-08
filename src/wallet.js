@@ -32,7 +32,7 @@ export class Wallet {
                 self.openWallet(data.walletName);
                 let salt = crypto.randomBytes(16).toString('hex');
                 crypto.pbkdf2(data.password, salt, 1000, 64, 'sha512', (err, hash) => {
-                    const stmt = self.knex.prepare('INSERT INTO password VALUES (?, ?)');
+                    const stmt = self.db.prepare('INSERT INTO password VALUES (?, ?)');
                     const info = stmt.run(hash.toString('hex'), salt);
                     if (info.changes === 1) {
                         event.sender.send('create-wallet-result', {data: true, errorMsg: null});
@@ -60,7 +60,7 @@ export class Wallet {
         self.ipcMain.on('login', function (event, data) {
             try {
                 self.openWallet(data.walletName);
-                const stmt = self.knex.prepare('SELECT * FROM password');
+                const stmt = self.db.prepare('SELECT * FROM password');
                 const info = stmt.get();
                 if (info === undefined) {
                     event.sender.send('login-result', {data: false, errorMsg: '钱包文件中没有密码信息'});
@@ -111,6 +111,21 @@ export class Wallet {
         });
 
         /*
+        获取当前的钱包名和路径，参数无
+        返回结果result, 获取成功钱包名和路径，如果获取失败errorMsg会包含失败原因
+        {
+          data: {
+            walletName:'',
+            walletPath:''
+          },
+          errorMsg: null
+        }
+         */
+        self.ipcMain.on('get-wallet-info', function (event) {
+            event.sender.send('get-wallet-info-result', {data: {walletName:self.walletName, walletPath:self.walletPath}, errorMsg: null});
+        });
+
+        /*
         获取网关配置
         返回结果result, 如果data为null则表示网关配置不存在或者获取失败，errorMsg会包含错误信息
         {
@@ -128,7 +143,7 @@ export class Wallet {
                     event.sender.send('get-gateway-result', {data: self.gateWay, errorMsg: null});
                     return;
                 }
-                const stmt = self.knex.prepare('SELECT * FROM gateway');
+                const stmt = self.db.prepare('SELECT * FROM gateway');
                 const info = stmt.get();
                 if (info === undefined) {
                     event.sender.send('get-gateway-result', {data: null, errorMsg: '网关配置不存在'});
@@ -160,17 +175,17 @@ export class Wallet {
          */
         self.ipcMain.on('set-gateway', function (event, data) {
             try {
-                const select = self.knex.prepare('SELECT * FROM gateway');
+                const select = self.db.prepare('SELECT * FROM gateway');
                 const selectInfo = select.get();
                 if (selectInfo === undefined) {
-                    const insert = self.knex.prepare('INSERT INTO gateway VALUES (?, ?, ?)');
+                    const insert = self.db.prepare('INSERT INTO gateway VALUES (?, ?, ?)');
                     const insertInfo = insert.run(data.url, data.aesKey, data.aesToken);
                     if (insertInfo.changes === 1) {
                         event.sender.send('set-gateway-result', {data: true, errorMsg: null});
                         return;
                     }
                 } else {
-                    const update = self.knex.prepare('UPDATE gateway SET url = ?, aes_key = ?, aes_token = ?');
+                    const update = self.db.prepare('UPDATE gateway SET url = ?, aes_key = ?, aes_token = ?');
                     const updateInfo = update.run(data.url, data.aesKey, data.aesToken);
                     if (updateInfo.changes === 1) {
                         event.sender.send('set-gateway-result', {data: true, errorMsg: null});
@@ -268,10 +283,10 @@ export class Wallet {
                     if (importResult === undefined) {
                         fail += 1;
                     } else {
-                        const select = self.knex.prepare('SELECT * FROM key WHERE pubkey_hash = ?');
+                        const select = self.db.prepare('SELECT * FROM key WHERE pubkey_hash = ?');
                         const selectInfo = select.get(importResult.pubkeyHash);
                         if (selectInfo === undefined) {
-                            const insert = self.knex.prepare('INSERT INTO key VALUES (?, ?, ?)');
+                            const insert = self.db.prepare('INSERT INTO key VALUES (?, ?, ?)');
                             const insertInfo = insert.run(importResult.pubkeyHash, importResult.encryptKey, new Date().getTime());
                             if (insertInfo.changes === 1) {
                                 success += 1;
@@ -318,16 +333,21 @@ export class Wallet {
         const userDataPath = this.getWalletPath();
         const walletPath = path.join(userDataPath, `${walletName}.wallet`);
 
-        this.knex = new Database(walletPath);
+        this.db = new Database(walletPath);
         const init = fs.readFileSync(path.join(__dirname,'migrate','init.sql'), 'utf8');
-        this.knex.exec(init);
+        this.db.exec(init);
+
+        this.walletName = walletName;
+        this.walletPath = walletPath;
     }
 
     closeWallet() {
-        this.knex.close();
-        this.knex = undefined;
+        this.db.close();
+        this.db = undefined;
         this.aesKey = undefined;
         this.gateWay = undefined;
+        this.walletName = undefined;
+        this.walletPath = undefined;
     }
 
     importWif(wif) {
