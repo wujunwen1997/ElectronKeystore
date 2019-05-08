@@ -326,6 +326,83 @@ export class Wallet {
         });
 
         /*
+        查看key，参数data是
+        {
+          pageNum:0, // 从0开始
+          pageSize:10
+        }
+        返回结果result, 按照创建时间降序，成功返回分页数据，如果失败返回null，errorMsg会包含失败原因
+        {
+          data: {
+            totalPage:3, // 总页数
+            pageNum:0, // 当前页位置
+            elements:[ // 数据
+              {
+                pubkeyHash:'',
+                createdAt:''
+              }
+            ]
+          },
+          errorMsg: null,
+        }
+         */
+        self.ipcMain.on('query-key', function (event, data) {
+            try {
+                const totalStmt = self.db.prepare('SELECT count(*) AS count FROM key');
+                const totalInfo = totalStmt.get();
+                let total = 0;
+                if (totalInfo !== undefined) {
+                    total = totalInfo.count;
+                }
+                if (total === 0) {
+                    event.sender.send('query-key-result', {
+                        data: {
+                            totalPage:0,
+                            pageNum:data.pageNum,
+                            elements:[]
+                        },
+                        errorMsg: null
+                    });
+                    return;
+                }
+                const totalPage = Math.ceil(total/data.pageSize);
+                if (data.pageNum > totalPage - 1) {
+                    event.sender.send('query-key-result', {
+                        data: {
+                            totalPage:totalPage,
+                            pageNum:data.pageNum,
+                            elements:[]
+                        },
+                        errorMsg: null
+                    });
+                    return;
+                }
+                const offset = data.pageNum * data.pageSize;
+                const selectStmt = self.db.prepare('SELECT * FROM key ORDER BY created_at DESC LIMIT ? OFFSET ?');
+                const selectInfo = selectStmt.all(data.pageSize, offset);
+                const elements = [];
+                for (let i = 0; i < selectInfo.length; i++) {
+                    const date = new Date(parseInt(selectInfo[i].created_at));
+                    const formattedDate = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate() + " " + date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds()
+                    elements.push({
+                        pubkeyHash:selectInfo[i].pubkey_hash,
+                        createdAt:formattedDate
+                    })
+                }
+                event.sender.send('query-key-result', {
+                    data: {
+                        totalPage:totalPage,
+                        pageNum:data.pageNum,
+                        elements:elements
+                    },
+                    errorMsg: null
+                });
+            } catch (e) {
+                event.sender.send('query-key-result', {data: null, errorMsg: e.message});
+            }
+        });
+
+        /*
         删除key，参数data是pubkeyHash
         返回结果result, 成功返回true，如果失败返回false，errorMsg会包含失败原因
         {
