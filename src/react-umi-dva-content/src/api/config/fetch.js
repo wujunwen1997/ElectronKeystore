@@ -123,12 +123,12 @@ export default (res) => {
             }
             ipcRenderer.on("decrypt-data-result", getDataEvent);
           } else {
-            message.error(res.msg || '请求失败')
+            message.error((res && res.msg) || '请求失败')
             reject(res)
           }
         })
       } else {
-        message.error(arg.errorMsg || '数据加密失败')
+        message.error((arg && arg.errorMsg) || '数据加密失败')
         reject(res)
       }
       ipcRenderer.removeListener("encrypt-data-result", getDataEvent)
