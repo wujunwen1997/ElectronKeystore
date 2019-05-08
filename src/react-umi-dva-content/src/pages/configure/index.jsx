@@ -15,7 +15,6 @@ class ConfigureComponent extends Component {
     this.props.form.validateFields(
       (err) => {
         if (!err) {
-          console.log(this.props.form.getFieldsValue())
           ipcRenderer.send("set-gateway", this.props.form.getFieldsValue())
         }
       },

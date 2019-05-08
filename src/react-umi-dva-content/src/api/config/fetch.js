@@ -5,7 +5,6 @@ import {getUserInfo} from '@/utils/storage.js'
 
 export default (res) => {
   return new Promise((resolve, reject) => {
-    console.log(1234, res)
     const instance = axios.create({
       baseURL: getUserInfo().url,
       headers: {
