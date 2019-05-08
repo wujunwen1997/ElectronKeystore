@@ -6,10 +6,9 @@ import LinkOpt from '@/components/LinkOpts'
 import router from "umi/router";
 import errorMsg from "@/utils/errorMsg.js";
 import {connect} from "dva";
-import {setUserInfo} from '@/utils/storage.js'
 const { Option } = Select;
 
-@connect()
+@connect((userModel) => ({userModel}))
 class Login extends Component {
   state = {
     walletsArr: []
@@ -25,8 +24,8 @@ class Login extends Component {
   }
   login = (event, arg) => {
     const loginSuccess = () => {
+      ipcRenderer.send("get-wallet-info")
       message.success('登录成功！');
-      ipcRenderer.send("get-wallet-info");
     }
     errorMsg(arg, loginSuccess)
   }
@@ -40,33 +39,22 @@ class Login extends Component {
     }
     errorMsg(arg, success, fail)
   }
-  successOrFail = (obj) => {
-    const {dispatch} = this.props;
-    dispatch({
-      type: 'userModel/setModel',
-      payload: obj
-    })
-    setUserInfo(obj)
-  }
-  //  得到网关配置
-  getGatewayResult = (event, arg) => {
-    const success = () => {
-      this.successOrFail({aesKey: arg.data.aesKey, aesToken: arg.data.aesToken, url: arg.data.url})
-    }
-    const fail = () => {
-      this.successOrFail({aesKey: '', aesToken: '', url: ''})
-    }
-    errorMsg(arg, success, fail)
-    router.push('/home/BTC');
-  };
   //  得到钱包信息
   getWalletInfoResult = (event, arg) => {
     const success = () => {
-      this.successOrFail({walletName: arg.data.walletName, walletPath: arg.data.walletPath})
-      ipcRenderer.send("get-gateway");
+      this.props.dispatch({
+        type: 'userModel/setModel',
+        payload: {walletName: arg.data.walletName}
+      })
+      if (arg.data.walletName) {
+        router.push('/home/BTC');
+      }
     }
     const fail = () => {
-      this.successOrFail({walletName: '--', walletPath: '--'})
+      this.props.dispatch({
+        type: 'userModel/setModel',
+        payload: {walletName: null}
+      })
     }
     errorMsg(arg, success, fail)
   };
@@ -74,13 +62,11 @@ class Login extends Component {
     ipcRenderer.send("get-user-wallet");
     ipcRenderer.on("get-user-wallet-result", this.getWallets);
     ipcRenderer.on("login-result", this.login);
-    ipcRenderer.on("get-gateway-result", this.getGatewayResult);
     ipcRenderer.on("get-wallet-info-result", this.getWalletInfoResult);
   }
   componentWillUnmount () {
     ipcRenderer.removeListener("get-user-wallet-result", this.getWallets)
     ipcRenderer.removeListener("login-result", this.login)
-    ipcRenderer.removeListener("get-gateway-result", this.getGatewayResult)
     ipcRenderer.removeListener("get-wallet-info-result", this.getWalletInfoResult);
   }
   render() {

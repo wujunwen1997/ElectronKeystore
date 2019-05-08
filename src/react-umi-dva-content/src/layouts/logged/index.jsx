@@ -2,13 +2,15 @@ import React, {Component} from 'react'
 import {Icon, Menu} from 'antd'
 import s from './index.scss'
 import Link from "umi/link"
+import {ipcRenderer} from '@/config/Electron.js'
 import {connect} from "dva";
-import {getUserInfo} from '@/utils/storage.js'
+import errorMsg from "@/utils/errorMsg.js";
 
 @connect()
 class logged extends Component {
   state = {
     current: 'signatureTransaction',
+    walletName: null
   }
 
   handleClick = (e) => {
@@ -16,9 +18,24 @@ class logged extends Component {
       current: e.key,
     });
   }
+  getWalletInfoResult = (event, arg) => {
+    const success = () => {
+      this.setState({walletName: arg.data.walletName})
+    }
+    const fail = () => {
+      this.setState({walletName: null})
+    }
+    errorMsg(arg, success, fail)
+  }
+  componentDidMount () {
+    ipcRenderer.send("get-wallet-info")
+    ipcRenderer.on("get-wallet-info-result", this.getWalletInfoResult);
+  }
+  componentWillUnmount () {
+    ipcRenderer.removeListener("get-wallet-info-result", this.getWalletInfoResult);
+  }
   render() {
     const { children } = this.props;
-    const {walletName} = getUserInfo()
     return (
       <div className={s.logged}>
        <div className={s.top}>
@@ -38,7 +55,7 @@ class logged extends Component {
            </Menu.Item>
          </Menu>
          <div className={s.right}>
-             <Link to="/configure"><Icon type="setting" />{walletName}</Link>
+             <Link to="/configure"><Icon type="setting" />{this.state.walletName}</Link>
          </div>
        </div>
         <div className={s.content}>

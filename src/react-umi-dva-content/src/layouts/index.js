@@ -2,15 +2,35 @@ import React, {Component} from 'react'
 import needLog from './needLog/index'
 import logged from './logged/index'
 import { connect } from 'dva';
-import { TransitionGroup, CSSTransition } from 'react-transition-group'
-import {getUserInfo} from "../utils/storage";
+import {ipcRenderer} from '@/config/Electron.js'
+import errorMsg from "@/utils/errorMsg.js";
+// import { TransitionGroup, CSSTransition } from 'react-transition-group'
 
-@connect((model) => ({model}))
+@connect()
 class BasicLayout extends Component{
+  state = {
+    walletName: null
+  }
+  //  得到钱包信息
+  getWalletInfoResult = (event, arg) => {
+    const success = () => {
+      this.setState({walletName: arg.data.walletName})
+    }
+    const fail = () => {
+      this.setState({walletName: null})
+    }
+    errorMsg(arg, success, fail)
+  };
+  componentDidMount () {
+    ipcRenderer.send("get-wallet-info")
+    ipcRenderer.on("get-wallet-info-result", this.getWalletInfoResult);
+  }
+  componentWillUnmount () {
+    ipcRenderer.removeListener("get-wallet-info-result", this.getWalletInfoResult);
+  }
   render () {
     const { children } = this.props;
-    let o = getUserInfo()
-    const MyLayout = o.walletName && o.url ? logged : needLog;
+    const MyLayout = this.state.walletName ? logged : needLog;
     return (
           <MyLayout>
              {children}

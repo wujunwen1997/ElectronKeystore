@@ -13,7 +13,8 @@ class RouterComponent extends Component {
   render() {
     const {transactionDetail, loading, dispatch} = this.props
     const {inputArr, outputArr, moreText} = transactionDetail
-    const {blockchain, createTime, amount, fee, customerId, id, inputs, outputs, symbol, platformCoin} = transactionDetail.transactionMsg
+    const {blockchain, createTime, amount, fee, inputs, outputs, platformCoin} = transactionDetail.transactionMsg
+    // customerId, id,, symbol
     const seeAllAddress = () => {
       let obj = {}
       obj.moreText = moreText === '显示所有地址' ? '收起所有地址' : '显示所有地址'
