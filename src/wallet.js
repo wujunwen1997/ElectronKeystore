@@ -322,6 +322,28 @@ export class Wallet {
                 event.sender.send('import-wif-from-file-result', {data: null, errorMsg: e.message});
             }
         });
+
+        /*
+        删除key，参数data是pubkeyHash
+        返回结果result, 成功返回true，如果失败返回false，errorMsg会包含失败原因
+        {
+          data: true,
+          errorMsg: null,
+        }
+         */
+        self.ipcMain.on('delete-key', function (event, data) {
+            try {
+                const update = self.db.prepare('DELETE FROM key WHERE pubkey_hash = ?');
+                const updateInfo = update.run(data);
+                if (updateInfo.changes === 1) {
+                    event.sender.send('delete-key-result', {data: true, errorMsg: null});
+                } else {
+                    event.sender.send('delete-key-result', {data: false, errorMsg: 'key不存在'});
+                }
+            } catch (e) {
+                event.sender.send('delete-key-result', {data: false, errorMsg: e.message});
+            }
+        });
     }
 
     getWalletPath() {
@@ -339,6 +361,16 @@ export class Wallet {
 
         this.walletName = walletName;
         this.walletPath = walletPath;
+
+        const stmt = self.db.prepare('SELECT * FROM gateway');
+        const info = stmt.get();
+        if (info !== undefined) {
+            self.gateWay = {
+                aesKey: info.aes_key,
+                aesToken: info.aes_token,
+                url: info.url
+            };
+        }
     }
 
     closeWallet() {
