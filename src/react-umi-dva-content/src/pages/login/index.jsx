@@ -10,7 +10,7 @@ const { Option } = Select;
 class Login extends Component {
   state = {
     walletsArr: []
-  }
+  };
   handleSubmit = (e) => {
     e.preventDefault();
     this.props.form.validateFields((err, values) => {
@@ -18,15 +18,53 @@ class Login extends Component {
         ipcRenderer.send("login", values);
       }
     });
-  }
-  loginSuccess = () => {
-    message.success('登录成功！')
+  };
+  //  得到网关配置
+  getGatewayResult = (event, arg) => {
+    const {dispatch} = this.props;
+    if (arg.data === null) {
+      dispatch({
+        type: 'userModel/setModel',
+        payload: {aesKey: '', aesToken: '', url: ''}
+      });
+      message.error(arg.errorMsg)
+    } else {
+      dispatch({
+        type: 'userModel/setModel',
+        payload: {aesKey: arg.data.aesKey, aesToken: arg.data.aesToken, url: arg.data.url}
+      })
+    }
     router.push('/home');
-  }
+  };
+  //  得到钱包信息
+  getWalletInfoResult = (event, arg) => {
+    console.log(22222, arg);
+    const {dispatch} = this.props;
+    if (arg.data === null) {
+      dispatch({
+        type: 'userModel/setModel',
+        payload: {walletName: '--', walletPath: '--'}
+      });
+      message.error(arg.errorMsg)
+    } else {
+      dispatch({
+        type: 'userModel/setModel',
+        payload: {walletName: arg.data.walletName, walletPath: arg.data.walletPath}
+      });
+      ipcRenderer.send("get-gateway");
+    }
+  };
+
   login = (event, arg) => {
-    console.log(123, arg)
-    errorMsg(arg, this.loginSuccess)
-  }
+    console.log(343333, arg)
+    // errorMsg(arg, loginSuccess)
+    // if (arg.data) {
+    //   message.success('登录成功！');
+    //   ipcRenderer.send("get-wallet-info");
+    // } else {
+    //   message.error(arg.errorMsg)
+    // }
+  };
   getWallets = (event, arg) => {
     if (arg.data && arg.data.length > 0) {
       console.log(123456, arg)
@@ -39,14 +77,19 @@ class Login extends Component {
         walletsArr: []
       })
     }
-  }
+  };
   componentDidMount () {
+    ipcRenderer.send("get-user-wallet");
     ipcRenderer.on("get-user-wallet-result", this.getWallets);
     ipcRenderer.on("login-result", this.login);
+    ipcRenderer.on("get-gateway-result", this.getGatewayResult);
+    ipcRenderer.on("get-wallet-info-result", this.getWalletInfoResult);
   }
   componentWillUnmount () {
     ipcRenderer.removeListener("get-user-wallet-result", this.getWallets)
     ipcRenderer.removeListener("login-result", this.login)
+    ipcRenderer.removeListener("get-gateway-result", this.getGatewayResult)
+    ipcRenderer.removeListener("get-wallet-info-result", this.getWalletInfoResult);
   }
   render() {
     const { getFieldDecorator } = this.props.form

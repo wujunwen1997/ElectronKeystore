@@ -1,24 +1,30 @@
 import React, {Component} from 'react'
 import s from './index.scss'
-import {Form, Input, Button, message} from 'antd';
+import {Form, Input, Button} from 'antd';
 import router from 'umi/router';
 import { connect } from 'dva'
 import {checkWalletName} from '@/utils/index'
 import {ipcRenderer} from '@/config/Electron.js'
 import LinkOpt from '@/components/LinkOpts'
+import errorMsg from "@/utils/errorMsg.js";
 
-ipcRenderer.on("create-wallet-result", function (event, arg) {
-  if (arg.data) {
-    message.success('创建成功！')
-    router.push('/login');
-  } else {
-    message.error('创建失败 ', arg.errorMsg);
-  }
-});
-@connect(({loading}) => ({loading}))
+@connect()
 class RouterComponent extends Component {
   state = {
     loading: false
+  }
+  createWalletResultSuccess = () => {
+    router.push('/');
+  }
+  createWalletResult = (event, arg) => {
+    this.setState({loading: false})
+    errorMsg(arg, this.createWalletResultSuccess)
+  }
+  componentDidMount () {
+    ipcRenderer.on("create-wallet-result", this.createWalletResult)
+  }
+  componentWillUnmount () {
+    ipcRenderer.removeListener("create-wallet-result", this.createWalletResult)
   }
   render() {
     const { form } = this.props;
@@ -39,6 +45,7 @@ class RouterComponent extends Component {
       this.props.form.validateFields((err, values) => {
         if (!err) {
           delete values.surePassword
+          this.setState({loading: true})
           ipcRenderer.send("create-wallet", values);
         }
       });
@@ -75,7 +82,7 @@ class RouterComponent extends Component {
             )}
           </Form.Item>
           <Form.Item>
-            <Button htmlType="submit" block loading={this.state.loading}>创建钱包</Button>
+            <Button htmlType="submit" type="primary" block loading={this.state.loading}>进入创建</Button>
           </Form.Item>
         </Form>
         <LinkOpt login={true} imports={true}/>

@@ -1,28 +1,28 @@
-Arguments: 
+Arguments:
   C:\Program Files\nodejs\node.exe C:\Users\blockchain\AppData\Roaming\npm\node_modules\yarn\bin\yarn.js add sqlite3 -s
 
-PATH: 
+PATH:
   C:\Program Files (x86)\NetSarang\Xftp 6\;C:\Program Files (x86)\NetSarang\Xshell 6\;C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files\Git\cmd;C:\Program Files\Java\jdk1.8.0_201\bin;C:\Program Files\Java\jdk1.8.0_201\jre\bin;C:\Program Files\dotnet\;C:\Program Files\Microsoft SQL Server\130\Tools\Binn\;C:\Program Files\nodejs\;C:\Users\blockchain\AppData\Local\Microsoft\WindowsApps;C:\Users\blockchain\AppData\Local\Programs\Microsoft VS Code\bin;C:\Program Files\Weex Studio\bin;C:\Python27;C:\Users\blockchain\AppData\Roaming\npm
 
-Yarn version: 
+Yarn version:
   1.15.2
 
-Node version: 
+Node version:
   10.15.3
 
-Platform: 
+Platform:
   win32 x64
 
-Trace: 
-  Error: ENOENT: no such file or directory, copyfile 'C:\Users\blockchain\AppData\Local\Yarn\Cache\v4\npm-ansi-styles-2.2.1-b432dd3358b634cf75e1e4664368240533c1ddbe\node_modules\ansi-styles\index.js' -> 'C:\work\rrjjWork\wallet\node_modules\@paulcbetts\vueify\node_modules\ansi-styles\index.js'
+Trace:
+  Error: ENOENT: no such file or directory, copyfile 'C:\Users\blockchain\AppData\Local\Yarn\Cache\v4\npm-ansi-styles-2.2.1-b432dd3358b634cf75e1e4664368240533c1ddbe\node_modules\ansi-styles\$id.js' -> 'C:\work\rrjjWork\wallet\node_modules\@paulcbetts\vueify\node_modules\ansi-styles\$id.js'
 
-npm manifest: 
+npm manifest:
   {
     "name": "chainspay-wallet",
     "productName": "Chainspay Wallet",
     "version": "1.0.0",
     "description": "Chainspay Wallet is a batch key manager and tx singer",
-    "main": "src/index.js",
+    "main": "src/$id.js",
     "scripts": {
       "start": "electron-forge start",
       "package": "electron-forge package",
@@ -87,8 +87,8 @@ npm manifest:
     }
   }
 
-yarn manifest: 
+yarn manifest:
   No manifest
 
-Lockfile: 
+Lockfile:
   No lockfile

@@ -1,29 +1,17 @@
+@import '@/themes/mixin.scss';
 .import{
-  width: 360px;height: 400px;margin: auto;padding-top: 12vh;text-align: center;
-  .tip {
-    color: white;font-size: 12px;line-height: 16px;opacity: 0.8;
-  }
+  width: 460px;@include contentDiv;
+  .title{@include contentTitle}
   :global .login-form {
-    margin-top: 20px;
+    @include contentForm;
+    .ant-input-prefix{width: 90px !important;}
     .ant-input-affix-wrapper {
-      .ant-input:not(:first-child){
-        padding-left: 110px !important;
-      }
-      .ant-input-prefix{
-        width: 100px;text-align: right;left: 2px;color: #848484;
-      }
+      .ant-input:not(:first-child){padding-left: 120px !important;padding-right: 116px}
     }
-  }
-  .bot{
-    display: flex ;justify-content: center;
-    a{
-      color: #f3f3f3;
-    }
-    li {
-      &:nth-child(2){
-        margin: 0 15px;line-height: 18px;color: #e8e7e9;
-      }
-      &:hover a{color: #f5fffa;}
+    .ant-input-group-addon{
+      position: absolute;right: 12px;z-index: 99;background: none;border: none !important;
+      width: 99px;height: 23px;text-align: center;line-height: 23px;font-size:13px;top: 9px;
+      font-weight:400;color:rgba(255,255,255,1);background:rgba(23,156,233,1);border-radius:3px;
     }
   }
 }

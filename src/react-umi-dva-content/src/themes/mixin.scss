@@ -1,0 +1,22 @@
+$baseColor: rgba(23,156,233,1);
+
+@mixin contentDiv {
+  text-align: center;background: white ;border-radius:5px;padding: 25px;opacity: 0.9;
+}
+@mixin contentTitle {
+  font-size: 18px;color:$baseColor;font-weight:500;
+}
+@mixin contentForm {
+  margin-top: 18px;
+  .ant-form-explain{margin-top: 2px;margin-bottom: -5px;}
+  .ant-input-affix-wrapper {
+    height: 40px;
+    .ant-input:not(:first-child){padding-left: 100px !important;}
+    .ant-input-prefix{width: 60px;text-align: left;left: 20px;color: #848484;}
+  }
+  .ant-btn-block{
+    height: 40px;border:1px solid rgba(23,156,233,1);background:$baseColor;
+    &:hover{opacity: 0.9}
+    span{font-size: 16px;font-weight: 500;color:rgba(255,255,255,1);}
+  }
+}

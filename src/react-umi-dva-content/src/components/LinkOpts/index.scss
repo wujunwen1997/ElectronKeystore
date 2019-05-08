@@ -1,10 +1,11 @@
 .bot{
-  display: flex ;justify-content: center;margin-top:10px;
+  display: flex ;justify-content: center;
   a{
-    color: #f3f3f3;
+   font-weight:300;
+    color:rgba(23,156,233,1);
   }
   li {
-    &:first-child{margin-right: 34px}
-    &:hover a{color: #f5fffa;}
+    &:first-child{margin-right: 31px}
+    &:hover a{color: #4298d1;}
   }
 }

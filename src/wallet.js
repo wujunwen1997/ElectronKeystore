@@ -3,7 +3,7 @@ const glob = require('glob');
 const fs = require('fs');
 const Database = require('better-sqlite3');
 const crypto = require('crypto');
-const bcrypto = require('blockchain-crypto');
+// const bcrypto = require('blockchain-crypto');
 
 export class Wallet {
 

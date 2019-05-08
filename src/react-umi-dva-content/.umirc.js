@@ -8,7 +8,7 @@ export default {
       antd: true,
       dva: true,
       dynamicImport: false,
-      title: 'react-umi-dva-content',
+      title: '链付钱包',
       dll: false,
 
       routes: {

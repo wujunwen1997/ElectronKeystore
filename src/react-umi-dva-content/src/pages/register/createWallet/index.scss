@@ -1,15 +1,8 @@
+@import '@/themes/mixin.scss';
 .create{
-  width: 360px;
-  .title{color: white;font-size: 22px;margin-bottom: 8px}
+  width: 460px;@include contentDiv;
+  .title{@include contentTitle}
   :global .login-form {
-    margin-top: 20px;
-    .ant-input-affix-wrapper {
-      .ant-input:not(:first-child){
-        padding-left: 70px !important;
-      }
-      .ant-input-prefix{
-        width: 60px;text-align: right;left: 2px;color: #848484;
-      }
-    }
+    @include contentForm
   }
 }

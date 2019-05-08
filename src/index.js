@@ -13,9 +13,11 @@ const isDevMode = process.execPath.match(/[\\/]electron/);
 
 const createWindow = async () => {
   const windowOptions = {
-    width: 1080,
-    minWidth: 680,
-    height: 840,
+    width: 980,
+    minWidth: 980,
+    height: 640,
+    minHeight: 640,
+    // frame: false,
     title: app.getName(),
     // todo icon，backgroundColor需要设置
     // In Electron 5.0.0, node integration will be disabled by default.

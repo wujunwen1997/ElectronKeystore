@@ -9,7 +9,7 @@ import LinkOpt from '@/components/LinkOpts'
 
 ipcRenderer.on("export-keystore-result", function (event, arg) {
   message.success('Keystore 文件导出成功！')
-  router.push('/login');
+  router.push('/');
 });
 class RouterComponent extends PureComponent {
 

@@ -1,0 +1,60 @@
+@mixin hoverNewBtn{
+  background:rgba(7,123,231,1);color:rgba(255,255,255,1);
+}
+@mixin newBtn{
+  background:rgba(225,228,234,1);color:rgba(102,102,102,1);border: #E1E4EA;box-shadow: none;text-shadow: none;
+  &:hover{
+    @include hoverNewBtn;
+  }
+}
+@mixin refreshBtn{
+ float: right;font-size: 12px;
+}
+.leftNav{
+  height:100%;
+  :global .ant-menu-item{
+    padding: 0 !important;margin: 0 !important;height: 65px;line-height: 65px;text-align: center;
+  }
+  :global .ant-menu-item-selected{
+    background: #e0f0f7 !important;font-size:14px;
+  }
+  .menu{
+    height: 100%;background:rgba(239,239,239,1);float:left;
+    :global .ant-badge-count{
+      right: -15px;box-shadow: none;min-width: 16px;height: 14px;line-height: 14px;font-size: 11px;
+    }
+  }
+}
+.content{
+  float: right;width: calc(100% - 120px);height: 100%;position: relative;
+  //overflow-x: hidden;overflow-y: scroll;
+  .myTable{
+    overflow-x: hidden;overflow-y: auto;
+    width: 100%;height: calc(100% - 50px);position: relative;
+    :global .ant-table-placeholder{border: none;border-radius: 0;}
+  }
+  .botttom{
+    position: absolute;bottom: 0;right: 0;height: 50px;width: 100%;background:rgba(246,247,252,1);
+    display: flex;align-items: center;justify-content: space-between;
+    :global .ant-pagination{margin-left: 20px;}
+    //.newBtn{@include newBtn;}
+    .autograph{margin-right: 20px;margin-left: 5px;@include refreshBtn;}
+  }
+  :global .ant-table-tbody{font-size: 12px;
+    //right: 0;bottom: 50px;height: calc(100% - 200px);overflow-y: scroll;width: calc(100% - 200px);
+    >tr{
+      >td{
+        border: none;padding: 11px !important;
+      }
+      background: white;
+      &:nth-child(even){
+        background: #F6F7FC;
+      }
+    }
+    .ant-btn-sm{font-size: 12px}
+    .ant-btn-primary{
+      @include newBtn;
+      &:hover{ @include hoverNewBtn;}
+    }
+  }
+}

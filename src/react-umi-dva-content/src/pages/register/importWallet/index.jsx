@@ -1,16 +1,13 @@
 import React, {Component} from 'react'
 import s from './index.scss'
-import {Form, Input, Button, Icon, message} from 'antd';
+import {Form, Input, Button, message} from 'antd';
 import {remote} from '../../../config/Electron.js'
 import {checkWalletName} from '@/utils/index'
 import {ipcRenderer} from '@/config/Electron.js'
 import LinkOpt from '@/components/LinkOpts'
 import router from "umi/router";
+import errorMsg from "@/utils/errorMsg.js";
 
-ipcRenderer.on("import-keystore-result", function (event, arg) {
-  message.success('钱包导入成功！')
-  router.push('/login');
-});
 class RouterComponent extends Component {
   state = {
     recoverAccountFrm: {
@@ -18,6 +15,18 @@ class RouterComponent extends Component {
       accountPrivatekeyFilePath: '',
       accountPwd: ''
     },
+  }
+  importKeystoreSuccess = () => {
+    router.push('/');
+  }
+  importKeystore = (event, arg) => {
+    errorMsg(arg, this.importKeystoreSuccess)
+  }
+  componentDidMount () {
+    ipcRenderer.on("import-keystore-result", this.importKeystore)
+  }
+  componentWillUnmount () {
+    ipcRenderer.removeListener("import-keystore-result", this.importKeystore)
   }
   handleSubmit = (e) => {
     e.preventDefault();
@@ -55,21 +64,22 @@ class RouterComponent extends Component {
               rules: [{ required: true, message: '请导入钱包文件！' }],
               initialValue: this.state.recoverAccountFrm.accountPrivatekeyFilePath
             })(
-              <Input prefix='Keystore文件' placeholder="推荐使用右侧导入功能"  addonAfter={<Icon type="plus" onClick={onImport}/>}/>
+              <Input prefix='Keystore' placeholder="请选择"
+                     addonAfter={<div onClick={onImport} className='choiceWalletFile'>选择钱包文件</div>}/>
             )}
           </Form.Item>
           <Form.Item hasFeedback>
             {getFieldDecorator('password', {
-              rules: [{ required: true, message: '请输入旧钱包密码!' }],
+              rules: [{ required: true, message: '请输入旧钱包密码' }],
             })(
-              <Input prefix='Keystore密码' type="password" placeholder="请输入旧钱包密码" />
+              <Input prefix='Keystore密码' type="password" placeholder="请输入旧钱包密码!" />
             )}
           </Form.Item>
           <Form.Item hasFeedback>
             {getFieldDecorator('newWalletName', {
               rules: [ { validator: checkWalletName}],
             })(
-              <Input prefix='新钱包名'  placeholder="请输入钱包名，不超过20个字符"/>
+              <Input prefix='新钱包名'  placeholder="不超过20个字符"/>
             )}
           </Form.Item>
           <Form.Item>
