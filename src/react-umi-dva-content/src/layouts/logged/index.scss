@@ -19,14 +19,6 @@
         border: none !important;padding: 0 !important;top: 0;
       }
     }
-    .right{
-      float: right;height: 100%;line-height: 70px;width: 50%;
-      a{
-        height: 100%;font-size:14px;font-weight:500;color:rgba(255,254,254,1);margin-right: 20px;float: right;
-        &:hover{opacity: 0.9;}
-        i{font-size: 20px;margin-right: 9px}
-      }
-    }
   }
 
   .content{

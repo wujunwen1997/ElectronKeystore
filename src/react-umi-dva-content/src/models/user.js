@@ -8,7 +8,8 @@ export default {
     aesKey: '',
     aesToken: '',
     walletName: '',
-    walletPath: ''
+    walletPath: '',
+    current: 'signatureTransaction'
   },
   reducers: {
     'setModel'(state, { payload }) {
@@ -43,7 +44,6 @@ export default {
     setupConfigureGateway({ dispatch, history }) {
       return history.listen(({ pathname }) => {
         if (pathMatchRegexp('/configure', pathname)) {
-          console.log('全局ConfigureGateway')
           ipcRenderer.send("get-gateway");
           const getGatewayResult = (event, arg) => {
             if (arg.data && arg.data !== '{}') {
@@ -55,6 +55,17 @@ export default {
           }
           ipcRenderer.on("get-gateway-result", getGatewayResult);
         }
+      })
+    },
+    setupTitle({ dispatch, history }) {
+      return history.listen(({ pathname, query }) => {
+        let title = ''
+        if (pathMatchRegexp('/home/:id', pathname)) {
+          title = 'signatureTransaction'
+        } else if (pathMatchRegexp('/configure', pathname)) {
+          title = 'configure'
+        }
+        dispatch({ type: 'setModel', payload: {current: title}})
       })
     },
   },

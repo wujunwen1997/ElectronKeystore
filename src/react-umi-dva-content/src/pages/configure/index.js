@@ -6,6 +6,7 @@ import {ipcRenderer} from '@/config/Electron.js'
 import {connect} from "dva";
 import router from "umi/router";
 import errorMsg from "@/utils/errorMsg.js";
+import copy from 'copy-to-clipboard';
 
 @connect((userModel) => ({userModel}))
 class ConfigureComponent extends Component {
@@ -38,6 +39,10 @@ class ConfigureComponent extends Component {
     const {userModel} = this.props
     const {walletName, walletPath, url, aesKey, aesToken} = userModel.userModel
     const { getFieldDecorator } = this.props.form;
+    const getUrl = () => {
+      copy(walletPath)
+      message.success('已复制')
+    }
     return (
       <div className={s.configure}>
         <div className={s.textGroup}>
@@ -48,11 +53,11 @@ class ConfigureComponent extends Component {
               <span>{walletName}</span>
               <Button type="primary" size={'small'} className={s.layout} onClick={this.layout}>钱包切换</Button>
             </div>
-            <div><label>钱包文件路径</label><span>{walletPath}</span></div>
+            <div><label>钱包文件路径</label><span onClick={getUrl}>{walletPath}</span></div>
           </div>
           <div className={s.textGroupDiv}>
             <p>网关设置</p>
-            <Form.Item label="Aeskey" hasFeedback>
+            <Form.Item label="Aeskey">
               {getFieldDecorator('aesKey', {
                 rules: [{validator: checkAesKey}, { required: true, message: '请输入Aeskey值'}],
                 initialValue: aesKey
@@ -60,7 +65,7 @@ class ConfigureComponent extends Component {
                 <Input placeholder="请输入Aeskey值"/>
               )}
             </Form.Item>
-            <Form.Item label="AesToken" hasFeedback>
+            <Form.Item label="AesToken">
               {getFieldDecorator('aesToken', {
                 rules: [{validator: checkToken}, { required: true, message: '请输入AesToken值'}],
                 initialValue: aesToken
@@ -68,7 +73,7 @@ class ConfigureComponent extends Component {
                 <Input placeholder="请输入AesToken值"/>
               )}
             </Form.Item>
-            <Form.Item label="网关" hasFeedback>
+            <Form.Item label="网关">
               {getFieldDecorator('url', {
                 initialValue: url,
                 rules: [{ required: true, message: '请输入网关信息'}],

@@ -56,14 +56,14 @@ class Login extends Component {
 
     return (
       <div className={s.login}>
-        <p className={s.title}>
+        <div className={s.title}>
           <img src={logo}></img>
-          登录链付钱包
-        </p>
+          <div>登录链付钱包</div>
+        </div>
         <Form onSubmit={this.handleSubmit} className="login-form" layout={'horizontal'} >
           {
             this.state.walletsArr && this.state.walletsArr.length > 0 &&  <Form.Item>
-              <span className={s.ccc}>钱包名</span>
+              <span className={s.walletName}>钱包名</span>
               {getFieldDecorator('walletName', {
                 rules: [{ required: true, message: '请选择钱包名！' }],
                 initialValue: this.state.walletsArr[this.state.walletsArr.length - 1]

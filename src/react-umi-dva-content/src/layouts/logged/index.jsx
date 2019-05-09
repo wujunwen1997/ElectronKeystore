@@ -6,17 +6,10 @@ import {ipcRenderer} from '@/config/Electron.js'
 import {connect} from "dva";
 import errorMsg from "@/utils/errorMsg.js";
 
-@connect()
+@connect((userModel) => ({userModel}))
 class logged extends Component {
   state = {
-    current: 'signatureTransaction',
     walletName: null
-  }
-
-  handleClick = (e)=> {
-    this.setState({
-      current: e.key,
-    });
   }
   getWalletInfoResult = (event, arg) => {
     const success = () => {
@@ -33,14 +26,19 @@ class logged extends Component {
     ipcRenderer.on("get-wallet-info-result", this.getWalletInfoResult);
   }
   render() {
-    const { children } = this.props;
+    const { children, userModel, dispatch } = this.props;
+    const {current} = userModel.userModel
+    const handleClick = (e)=> {
+      dispatch({ type: 'userModel/setModel', payload: {current: e.key}})
+    }
     return (
       <div className={s.logged}>
        <div className={s.top}>
          <Menu
-           onClick={this.handleClick}
-           selectedKeys={[this.state.current]}
+           onClick={handleClick}
+           selectedKeys={[current]}
            mode="horizontal" className={s.myHeader}
+           style={{width: '100%'}}
          >
            <Menu.Item key="signatureTransaction">
              <Link to="/home/BTC"><Icon type="form" />签名交易</Link>
@@ -51,10 +49,10 @@ class logged extends Component {
            <Menu.Item key="HDManagement">
              <Link to="/home"><Icon type="unlock" />HD管理</Link>
            </Menu.Item>
-         </Menu>
-         <div className={s.right}>
+           <Menu.Item key="configure" style={{float: 'right'}}>
              <Link to="/configure"><Icon type="setting" />{this.state.walletName}</Link>
-         </div>
+           </Menu.Item>
+         </Menu>
        </div>
         <div className={s.content}>
           {children}
