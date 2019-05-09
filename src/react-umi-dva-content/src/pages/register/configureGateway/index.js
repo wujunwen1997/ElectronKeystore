@@ -12,7 +12,6 @@ class RouterComponent extends Component {
   handleSubmit = (e) => {
     e.preventDefault();
     this.props.form.validateFields((err, values) => {
-      console.log(values)
       if (!err) {
         ipcRenderer.send("set-gateway", values)
         ipcRenderer.on("set-gateway-result", this.setGatewayResult);

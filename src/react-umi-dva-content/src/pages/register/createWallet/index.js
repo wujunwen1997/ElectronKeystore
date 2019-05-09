@@ -19,7 +19,6 @@ class RouterComponent extends Component {
     const createWalletResultSuccess = () => {
       message.success('创建成功')
       const { userModel } = this.props;
-      console.log(userModel)
       const {aesKey, aesToken, url} = userModel;
       (aesKey && aesKey !== '' && aesToken && aesToken !== '' && url && url !== '') ? router.push('/') : router.push('/register/configureGateway')
     }
