@@ -1,7 +1,15 @@
 @import '@/themes/mixin.scss';
 .login{
   width: 460px;@include contentDiv;
-  .title{@include contentTitle}
+  .title{
+    @include contentTitle;
+    img{
+      width: 44px;margin-right: 16px;
+    }
+    span{
+      //padding-top: 5px;
+    }
+  }
   :global  .login-form{
 
     @include contentForm;

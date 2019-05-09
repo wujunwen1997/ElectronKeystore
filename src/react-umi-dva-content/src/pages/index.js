@@ -6,6 +6,7 @@ import LinkOpt from '@/components/LinkOpts'
 import router from "umi/router";
 import errorMsg from "@/utils/errorMsg.js";
 import {connect} from "dva";
+import logo from '@/assets/logo.png'
 const { Option } = Select;
 
 @connect((userModel) => ({userModel}))
@@ -19,62 +20,46 @@ class Login extends Component {
       if (!err) {
         this.setState({loading: true})
         ipcRenderer.send("login", values);
+        ipcRenderer.on("login-result", this.login);
       }
     });
   }
   login = (event, arg) => {
     const loginSuccess = () => {
-      ipcRenderer.send("get-wallet-info")
       message.success('登录成功！');
+      router.push('/home/BTC');
     }
     errorMsg(arg, loginSuccess)
+    ipcRenderer.removeListener("login-result", this.login)
   }
   getWallets = (event, arg) => {
     const success = () => {
-      this.setState({walletsArr: arg.data})
+      if (arg.data && arg.data.length > 0) {
+        this.setState({walletsArr: arg.data})
+      } else {
+        router.push('/welcome');
+      }
     }
     const fail = () => {
       this.setState({walletsArr: []})
       router.push('/welcome');
     }
     errorMsg(arg, success, fail)
+    ipcRenderer.removeListener("get-user-wallet-result", this.getWallets)
   }
-  //  得到钱包信息
-  getWalletInfoResult = (event, arg) => {
-    const success = () => {
-      this.props.dispatch({
-        type: 'userModel/setModel',
-        payload: {walletName: arg.data.walletName}
-      })
-      if (arg.data.walletName) {
-        router.push('/home/BTC');
-      }
-    }
-    const fail = () => {
-      this.props.dispatch({
-        type: 'userModel/setModel',
-        payload: {walletName: null}
-      })
-    }
-    errorMsg(arg, success, fail)
-  };
   componentDidMount () {
     ipcRenderer.send("get-user-wallet");
     ipcRenderer.on("get-user-wallet-result", this.getWallets);
-    ipcRenderer.on("login-result", this.login);
-    ipcRenderer.on("get-wallet-info-result", this.getWalletInfoResult);
-  }
-  componentWillUnmount () {
-    ipcRenderer.removeListener("get-user-wallet-result", this.getWallets)
-    ipcRenderer.removeListener("login-result", this.login)
-    ipcRenderer.removeListener("get-wallet-info-result", this.getWalletInfoResult);
   }
   render() {
     const { getFieldDecorator } = this.props.form
 
     return (
       <div className={s.login}>
-        <p className={s.title}>登录链付钱包</p>
+        <p className={s.title}>
+          <img src={logo}></img>
+          登录链付钱包
+        </p>
         <Form onSubmit={this.handleSubmit} className="login-form" layout={'horizontal'} >
           {
             this.state.walletsArr && this.state.walletsArr.length > 0 &&  <Form.Item>

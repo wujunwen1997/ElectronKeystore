@@ -2,7 +2,7 @@ import React, {PureComponent, Fragment} from 'react'
 import {Icon, Alert, Button, message} from 'antd'
 import s from './index.scss'
 import {remote} from '../../../config/Electron.js'
-import Popover from '@/components/Popover/index.jsx'
+import Popover from '@/components/Popover/index.js'
 import {ipcRenderer} from '@/config/Electron.js'
 import router from "umi/router";
 import LinkOpt from '@/components/LinkOpts'

@@ -13,7 +13,7 @@ class logged extends Component {
     walletName: null
   }
 
-  handleClick = (e) => {
+  handleClick = (e)=> {
     this.setState({
       current: e.key,
     });
@@ -26,13 +26,11 @@ class logged extends Component {
       this.setState({walletName: null})
     }
     errorMsg(arg, success, fail)
+    ipcRenderer.removeListener("get-wallet-info-result", this.getWalletInfoResult);
   }
   componentDidMount () {
     ipcRenderer.send("get-wallet-info")
     ipcRenderer.on("get-wallet-info-result", this.getWalletInfoResult);
-  }
-  componentWillUnmount () {
-    ipcRenderer.removeListener("get-wallet-info-result", this.getWalletInfoResult);
   }
   render() {
     const { children } = this.props;

@@ -1,6 +1,6 @@
 import React, {Component} from 'react'
 import s from './index.scss'
-import {Form, Input, Button} from 'antd';
+import {Form, Input, Button, message} from 'antd';
 import router from 'umi/router';
 import { connect } from 'dva'
 import {checkWalletName} from '@/utils/index'
@@ -13,12 +13,13 @@ class RouterComponent extends Component {
   state = {
     loading: false
   }
-  createWalletResultSuccess = () => {
-    router.push('/');
-  }
   createWalletResult = (event, arg) => {
     this.setState({loading: false})
-    errorMsg(arg, this.createWalletResultSuccess)
+    const createWalletResultSuccess = () => {
+      message.success('创建成功')
+      router.push('/');
+    }
+    errorMsg(arg, createWalletResultSuccess)
   }
   componentDidMount () {
     ipcRenderer.on("create-wallet-result", this.createWalletResult)
@@ -71,14 +72,14 @@ class RouterComponent extends Component {
                 { validator: checkPassword}
               ],
             })(
-              <Input prefix='密码' type="password" placeholder="8-20个字符，含数字、字母和符号" />
+              <Input prefix='密码' type="password" placeholder="8-20个字符" />
             )}
           </Form.Item>
           <Form.Item hasFeedback>
             {getFieldDecorator('surePassword', {
               rules: [{validator: surePassword }],
             })(
-              <Input prefix='确认密码' type="password"  placeholder="8-20个字符，含数字、字母和符号"/>
+              <Input prefix='确认密码' type="password"  placeholder="8-20个字符"/>
             )}
           </Form.Item>
           <Form.Item>
