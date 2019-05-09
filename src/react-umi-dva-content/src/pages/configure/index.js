@@ -6,7 +6,7 @@ import {ipcRenderer} from '@/config/Electron.js'
 import {connect} from "dva";
 import router from "umi/router";
 import errorMsg from "@/utils/errorMsg.js";
-import copy from 'copy-to-clipboard';
+// import copy from 'copy-to-clipboard';
 
 @connect((userModel) => ({userModel}))
 class ConfigureComponent extends Component {
@@ -39,10 +39,6 @@ class ConfigureComponent extends Component {
     const {userModel} = this.props
     const {walletName, walletPath, url, aesKey, aesToken} = userModel.userModel
     const { getFieldDecorator } = this.props.form;
-    const getUrl = () => {
-      copy(walletPath)
-      message.success('已复制')
-    }
     return (
       <div className={s.configure}>
         <div className={s.textGroup}>
@@ -51,9 +47,12 @@ class ConfigureComponent extends Component {
             <div>
               <label>钱包名</label>
               <span>{walletName}</span>
-              <Button type="primary" size={'small'} className={s.layout} onClick={this.layout}>钱包切换</Button>
+              <Button type="primary" size={'small'} className={s.layout} onClick={this.layout}>切换钱包</Button>
             </div>
-            <div><label>钱包文件路径</label><span onClick={getUrl}>{walletPath}</span></div>
+            <div className={s.keepWay}>
+              <label></label>
+              <div style={{width: '80px'}}>钱包文件路径</div>
+              <div>{walletPath}</div></div>
           </div>
           <div className={s.textGroupDiv}>
             <p>网关设置</p>

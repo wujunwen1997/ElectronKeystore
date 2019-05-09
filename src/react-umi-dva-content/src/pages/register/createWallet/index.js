@@ -8,16 +8,20 @@ import {ipcRenderer} from '@/config/Electron.js'
 import LinkOpt from '@/components/LinkOpts'
 import errorMsg from "@/utils/errorMsg.js";
 
-@connect()
+@connect(({userModel}) => ({userModel}))
 class RouterComponent extends Component {
   state = {
-    loading: false
+    loading: false,
+    haveAes: false
   }
   createWalletResult = (event, arg) => {
     this.setState({loading: false})
     const createWalletResultSuccess = () => {
       message.success('创建成功')
-      router.push('/');
+      const { userModel } = this.props;
+      console.log(userModel)
+      const {aesKey, aesToken, url} = userModel;
+      (aesKey && aesKey !== '' && aesToken && aesToken !== '' && url && url !== '') ? router.push('/') : router.push('/register/configureGateway')
     }
     errorMsg(arg, createWalletResultSuccess)
   }
@@ -28,7 +32,8 @@ class RouterComponent extends Component {
     ipcRenderer.removeListener("create-wallet-result", this.createWalletResult)
   }
   render() {
-    const { form } = this.props;
+    const { form, userModel } = this.props;
+    const {aesKey, aesToken, url} = userModel
     const { getFieldDecorator } = form;
     const checkPassword = (rule, value, callback) => {
       let reg = /^([a-z0-9\.\@\!\#\$\%\^\&\*\(\)]){8,20}$/i;
@@ -83,7 +88,9 @@ class RouterComponent extends Component {
             )}
           </Form.Item>
           <Form.Item>
-            <Button htmlType="submit" type="primary" block loading={this.state.loading}>进入创建</Button>
+            <Button htmlType="submit" type="primary" block loading={this.state.loading}>
+              {(aesKey && aesKey !== '' && aesToken && aesToken !== '' && url && url !== '') ? '进入创建' : '下一步'}
+            </Button>
           </Form.Item>
         </Form>
         <LinkOpt login={true} imports={true}/>

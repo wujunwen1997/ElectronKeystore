@@ -1,0 +1,15 @@
+@import '@/themes/mixin.scss';
+.create{
+  width: 460px;@include contentDiv;
+  .title{@include contentTitle}
+  :global .login-form {
+    @include contentForm
+  }
+  .pass{
+    font-size:16px;font-weight:500;color:rgba(153,153,153,1);text-align: right;margin-top: -8px;cursor: pointer;
+    &:hover{
+      color: #0c85e8;
+    }
+  }
+  padding: 23px;
+}

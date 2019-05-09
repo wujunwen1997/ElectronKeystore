@@ -17,22 +17,19 @@ class RouterComponent extends Component {
     },
   }
   importKeystoreSuccess = () => {
+    message.success('导入成功，请登录')
     router.push('/');
   }
   importKeystore = (event, arg) => {
     errorMsg(arg, this.importKeystoreSuccess)
-  }
-  componentDidMount () {
-    ipcRenderer.on("import-keystore-result", this.importKeystore)
-  }
-  componentWillUnmount () {
-    ipcRenderer.removeListener("import-keystore-result", this.importKeystore)
+    ipcRenderer.removeListener("import-wallet-result", this.importKeystore)
   }
   handleSubmit = (e) => {
     e.preventDefault();
     this.props.form.validateFields((err, values) => {
       if (!err) {
-        ipcRenderer.send("import-keystore", values);
+        ipcRenderer.send("import-wallet", values);
+        ipcRenderer.on("import-wallet-result", this.importKeystore)
       }
     });
   }
@@ -60,12 +57,12 @@ class RouterComponent extends Component {
         <p className={s.title}>钱包导入</p>
         <Form onSubmit={this.handleSubmit} className="login-form">
           <Form.Item>
-            {getFieldDecorator('Keystore', {
+            {getFieldDecorator('walletPath', {
               rules: [{ required: true, message: '请导入钱包文件！' }],
               initialValue: this.state.recoverAccountFrm.accountPrivatekeyFilePath
             })(
               <Input prefix='Keystore' placeholder="请选择"
-                     addonAfter={<div onClick={onImport} className='choiceWalletFile'>选择钱包文件</div>}/>
+                     addonAfter={<div onClick={onImport}>选择钱包文件</div>}/>
             )}
           </Form.Item>
           <Form.Item hasFeedback>
@@ -76,7 +73,7 @@ class RouterComponent extends Component {
             )}
           </Form.Item>
           <Form.Item hasFeedback>
-            {getFieldDecorator('newWalletName', {
+            {getFieldDecorator('walletName', {
               rules: [ { validator: checkWalletName}],
             })(
               <Input prefix='新钱包名'  placeholder="不超过20个字符"/>

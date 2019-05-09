@@ -43,7 +43,7 @@ export default {
     },
     setupConfigureGateway({ dispatch, history }) {
       return history.listen(({ pathname }) => {
-        if (pathMatchRegexp('/configure', pathname)) {
+        if (pathMatchRegexp('/configure', pathname) || pathMatchRegexp('/register/createWallet', pathname)) {
           ipcRenderer.send("get-gateway");
           const getGatewayResult = (event, arg) => {
             if (arg.data && arg.data !== '{}') {
