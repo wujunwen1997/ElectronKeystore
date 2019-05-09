@@ -14,6 +14,8 @@ export class Wallet {
     }
 
     addListeners() {
+        const self = this;
+
         /*
         创建钱包，参数data
         {
@@ -26,7 +28,6 @@ export class Wallet {
           errorMsg: null
         }
          */
-        const self = this;
         self.ipcMain.on('create-wallet', function (event, data) {
             try {
                 self.openWallet(data.walletName);
@@ -39,6 +40,44 @@ export class Wallet {
                     } else {
                         event.sender.send('create-wallet-result', {data: false, errorMsg: '密码保存失败'});
                     }
+                });
+            } catch (e) {
+                event.sender.send('create-wallet-result', {data: false, errorMsg: e.message});
+            }
+        });
+
+        /*
+        导入钱包，参数data
+        {
+          walletPath: 钱包路径
+          walletName: 新的钱包名,
+          password: 密码
+        }，
+        返回结果result, true表示导入成功，false表示导入失败，如果导入失败errorMsg会包含失败原因
+        {
+          data: true,
+          errorMsg: null
+        }
+         */
+        self.ipcMain.on('import-wallet', function (event, data) {
+            try {
+                let db = new Database(data.walletPath);
+                const result = Wallet.checkPassword(db, data.password);
+                if (result.data !== true) {
+                    event.sender.send('import-wallet-result', {data: false, errorMsg: result.errorMsg});
+                    return;
+                }
+                const walletPath = self.getWalletPath(data.walletName);
+                if (fs.existsSync(walletPath)) {
+                    event.sender.send('import-wallet-result', {data: false, errorMsg: '钱包文件已存在'});
+                    return;
+                }
+                fs.copyFile(data.walletPath, walletPath, (err) => {
+                    if (err) {
+                        event.sender.send('import-wallet-result', {data: false, errorMsg: err.message});
+                        return;
+                    }
+                    event.sender.send('import-wallet-result', {data: true, errorMsg: null});
                 });
             } catch (e) {
                 event.sender.send('create-wallet-result', {data: false, errorMsg: e.message});
@@ -60,22 +99,26 @@ export class Wallet {
         self.ipcMain.on('login', function (event, data) {
             try {
                 self.openWallet(data.walletName);
-                const stmt = self.db.prepare('SELECT * FROM password');
-                const info = stmt.get();
-                if (info === undefined) {
-                    event.sender.send('login-result', {data: false, errorMsg: '钱包文件中没有密码信息'});
-                    return;
-                }
-                const hash = info.password_hash;
-                const salt = info.salt;
-                crypto.pbkdf2(data.password, salt, 1000, 64, 'sha512', (err, hash1) => {
-                    if (hash1.toString('hex') === hash) {
-                        self.aesKey = crypto.scryptSync(data.password, 'chainspay', 16);
-                        event.sender.send('login-result', {data: true, errorMsg: null});
-                    } else {
-                        event.sender.send('login-result', {data: false, errorMsg: '密码不正确'});
+
+                const result = Wallet.checkPassword(self.db, data.password);
+                if (result.data === true) {
+                    self.aesKey = crypto.scryptSync(data.password, 'chainspay', 16);
+                    self.walletInfo = {
+                        walletName:data.walletName,
+                        walletPath:self.getWalletPath(data.walletName)
+                    };
+
+                    const stmt = self.db.prepare('SELECT * FROM gateway');
+                    const info = stmt.get();
+                    if (info !== undefined) {
+                        self.gateWay = {
+                            aesKey: info.aes_key,
+                            aesToken: info.aes_token,
+                            url: info.url
+                        };
                     }
-                });
+                }
+                event.sender.send('login-result', result);
             } catch (e) {
                 event.sender.send('login-result', {data: false, errorMsg: e.message});
             }
@@ -103,8 +146,8 @@ export class Wallet {
         }
          */
         self.ipcMain.on('get-user-wallet', function (event) {
-            const userDataPath = self.getWalletPath();
-            const filenames = glob.sync(path.join(userDataPath, '*.wallet'));
+            const walletDir = self.getWalletDir();
+            const filenames = glob.sync(path.join(walletDir, '*.wallet'));
             let namesWithoutExtension = [];
             filenames.forEach((filename) => { namesWithoutExtension.push(path.parse(filename).name); });
             event.sender.send('get-user-wallet-result', {data: namesWithoutExtension, errorMsg: null});
@@ -122,7 +165,11 @@ export class Wallet {
         }
          */
         self.ipcMain.on('get-wallet-info', function (event) {
-            event.sender.send('get-wallet-info-result', {data: {walletName:self.walletName, walletPath:self.walletPath}, errorMsg: null});
+            if (self.walletInfo === undefined) {
+                event.sender.send('get-wallet-info-result', {data: null, errorMsg: '尚未登录钱包'});
+            } else {
+                event.sender.send('get-wallet-info-result', {data: self.walletInfo, errorMsg: null});
+            }
         });
 
         /*
@@ -337,40 +384,45 @@ export class Wallet {
         });
     }
 
-    getWalletPath() {
+    getWalletDir() {
+        // 如果是开发者模式，钱包文件就存放在当前目录
         return this.isDevMode ? __dirname : this.app.getPath('userData');
     }
 
-    openWallet(walletName) {
-        // 如果是开发者模式，钱包文件就存放在当前目录
-        const userDataPath = this.getWalletPath();
-        const walletPath = path.join(userDataPath, `${walletName}.wallet`);
+    getWalletPath(walletName) {
+        const walletDir = this.getWalletDir();
+        return path.join(walletDir, `${walletName}.wallet`);
+    }
 
+    openWallet(walletName) {
+        const walletPath = this.getWalletPath(walletName);
         this.db = new Database(walletPath);
         const init = fs.readFileSync(path.join(__dirname,'migrate','init.sql'), 'utf8');
         this.db.exec(init);
-
-        this.walletName = walletName;
-        this.walletPath = walletPath;
-
-        const stmt = this.db.prepare('SELECT * FROM gateway');
-        const info = stmt.get();
-        if (info !== undefined) {
-            this.gateWay = {
-                aesKey: info.aes_key,
-                aesToken: info.aes_token,
-                url: info.url
-            };
-        }
     }
 
     closeWallet() {
-        this.db.close();
-        this.db = undefined;
+        if (this.db !== undefined) {
+            this.db.close();
+            this.db = undefined;
+        }
         this.aesKey = undefined;
+        this.walletInfo = undefined;
         this.gateWay = undefined;
-        this.walletName = undefined;
-        this.walletPath = undefined;
+    }
+
+    static checkPassword(db, password) {
+        const stmt = db.prepare('SELECT * FROM password');
+        const info = stmt.get();
+        if (info === undefined) {
+            return {data: false, errorMsg: '钱包文件中没有密码信息'};
+        }
+        const hash = crypto.pbkdf2Sync(password, info.salt, 1000, 64, 'sha512');
+        if (hash.toString('hex') === info.password_hash) {
+            return {data: true, errorMsg: null};
+        } else {
+            return {data: false, errorMsg: '密码不正确'};
+        }
     }
 
     importWif(wif) {
