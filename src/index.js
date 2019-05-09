@@ -4,6 +4,7 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import installExtension, { REACT_DEVELOPER_TOOLS } from 'electron-devtools-installer';
 import {Wallet} from './wallet';
+import {Gateway} from './gateway';
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -99,5 +100,9 @@ app.on('activate', () => {
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.
 
-const wallet = new Wallet(app, ipcMain, isDevMode);
+const gateway = new Gateway(app, ipcMain, isDevMode);
+gateway.addListeners();
+
+const wallet = new Wallet(app, ipcMain, isDevMode, gateway);
 wallet.addListeners();
+

@@ -7,10 +7,11 @@ const bcrypto = require('blockchain-crypto');
 
 export class Wallet {
 
-    constructor(app, ipcMain, isDevMode) {
+    constructor(app, ipcMain, isDevMode, gateway) {
         this.app = app;
         this.ipcMain = ipcMain;
         this.isDevMode = isDevMode;
+        this.gateway = gateway;
     }
 
     addListeners() {
@@ -107,16 +108,6 @@ export class Wallet {
                         walletName:data.walletName,
                         walletPath:self.getWalletPath(data.walletName)
                     };
-
-                    const stmt = self.db.prepare('SELECT * FROM gateway');
-                    const info = stmt.get();
-                    if (info !== undefined) {
-                        self.gateWay = {
-                            aesKey: info.aes_key,
-                            aesToken: info.aes_token,
-                            url: info.url
-                        };
-                    }
                 }
                 event.sender.send('login-result', result);
             } catch (e) {
@@ -173,70 +164,6 @@ export class Wallet {
         });
 
         /*
-        获取网关配置
-        返回结果result, 如果data为null则表示网关配置不存在或者获取失败，errorMsg会包含错误信息
-        {
-          data: {
-            aesKey:'',
-            aesToken:'',
-            url:''
-          },
-          errorMsg: null
-        }
-         */
-        self.ipcMain.on('get-gateway', function (event) {
-            try {
-                if (self.gateWay !== undefined) {
-                    event.sender.send('get-gateway-result', {data: self.gateWay, errorMsg: null});
-                } else {
-                    event.sender.send('get-gateway-result', {data: null, errorMsg: '网关配置不存在'});
-                }
-            } catch (e) {
-                event.sender.send('get-gateway-result', {data: null, errorMsg: e.message});
-            }
-        });
-
-        /*
-        设置网关，参数data
-        {
-         aesKey:'',
-         aesToken:'',
-         url:''
-        }
-        返回结果result, true表示设置成功，false表示设置失败，如果设置失败errorMsg会包含失败原因
-        {
-          data: true,
-          errorMsg: null
-        }
-         */
-        self.ipcMain.on('set-gateway', function (event, data) {
-            try {
-                const select = self.db.prepare('SELECT * FROM gateway');
-                const selectInfo = select.get();
-                if (selectInfo === undefined) {
-                    const insert = self.db.prepare('INSERT INTO gateway VALUES (?, ?, ?)');
-                    const insertInfo = insert.run(data.url, data.aesKey, data.aesToken);
-                    if (insertInfo.changes === 1) {
-                        self.gateWay = data;
-                        event.sender.send('set-gateway-result', {data: true, errorMsg: null});
-                        return;
-                    }
-                } else {
-                    const update = self.db.prepare('UPDATE gateway SET url = ?, aes_key = ?, aes_token = ?');
-                    const updateInfo = update.run(data.url, data.aesKey, data.aesToken);
-                    if (updateInfo.changes === 1) {
-                        self.gateWay = data;
-                        event.sender.send('set-gateway-result', {data: true, errorMsg: null});
-                        return;
-                    }
-                }
-                event.sender.send('set-gateway-result', {data: false, errorMsg: '设置网关失败'});
-            } catch (e) {
-                event.sender.send('set-gateway-result', {data: false, errorMsg: e.message});
-            }
-        });
-
-        /*
         对访问链付的数据进行加密和签名，参数data是任意的json object
         返回结果result, 加密成功返回发送给链付的请求数据，如果网关配置不存在则返回错误
         {
@@ -249,14 +176,14 @@ export class Wallet {
          */
         self.ipcMain.on('encrypt-data', function (event, data) {
             try {
-                if (self.gateWay === undefined) {
+                if (self.gateway.getGateway() === undefined) {
                     event.sender.send('encrypt-data-result', {data: null, errorMsg: '网关配置不存在'});
                     return;
                 }
-                let cipher = crypto.createCipheriv('aes-128-cbc', Buffer.from(self.gateWay.aesKey, 'base64'), Buffer.alloc(16, 0));
+                let cipher = crypto.createCipheriv('aes-128-cbc', Buffer.from(self.gateway.getGateway().aesKey, 'base64'), Buffer.alloc(16, 0));
                 let encrypt = cipher.update(JSON.stringify(data), 'utf8', 'base64');
                 encrypt += cipher.final('base64');
-                let body = self.gateWay.aesToken + encrypt;
+                let body = self.gateway.getGateway().aesToken + encrypt;
                 let sha1 = crypto.createHash('sha1');
                 let sig = sha1.update(body).digest('hex');
                 event.sender.send('encrypt-data-result', {data: {body, sig}, errorMsg: null});
@@ -279,7 +206,7 @@ export class Wallet {
          */
         self.ipcMain.on('decrypt-data', function (event, data) {
             try {
-                if (self.gateWay === undefined) {
+                if (self.gateway.getGateway() === undefined) {
                     event.sender.send('decrypt-data-result', {data: null, errorMsg: '网关配置不存在'});
                     return;
                 }
@@ -289,8 +216,8 @@ export class Wallet {
                     event.sender.send('decrypt-data-result', {data: null, errorMsg: '签名校验失败'});
                     return;
                 }
-                let encrypt = data.body.substring(self.gateWay.aesToken.length);
-                let decipher = crypto.createDecipheriv('aes-128-cbc', Buffer.from(self.gateWay.aesKey, 'base64'), Buffer.alloc(16, 0));
+                let encrypt = data.body.substring(self.gateway.getGateway().aesToken.length);
+                let decipher = crypto.createDecipheriv('aes-128-cbc', Buffer.from(self.gateway.getGateway().aesKey, 'base64'), Buffer.alloc(16, 0));
                 let decrypt = decipher.update(encrypt, 'base64', 'utf8');
                 decrypt += decipher.final('utf8');
                 event.sender.send('decrypt-data-result', {data: JSON.parse(decrypt), errorMsg: null});
@@ -408,7 +335,6 @@ export class Wallet {
         }
         this.aesKey = undefined;
         this.walletInfo = undefined;
-        this.gateWay = undefined;
     }
 
     static checkPassword(db, password) {
