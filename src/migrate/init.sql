@@ -9,4 +9,4 @@ CREATE TABLE IF NOT EXISTS key (
    encrypt_key varchar(255) NOT NULL,
    created_at text NOT NULL
 );
-CREATE INDEX redeem_hash ON key (p2sh_p2wpkh);
+CREATE INDEX IF NOT EXISTS redeem_hash ON key (p2sh_p2wpkh);
