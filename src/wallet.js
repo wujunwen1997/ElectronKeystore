@@ -364,6 +364,48 @@ export class Wallet {
         });
 
         /*
+        根据地址查找key，参数data是address
+        返回结果result, 如果成功返回key信息，如果失败返回null，errorMsg会包含失败原因
+        {
+          data: {
+            find: true,
+            info: {
+              pubkeyHash:'',
+              createdAt:''
+            }
+          },
+          errorMsg: null,
+        }
+         */
+        self.ipcMain.on('search-key', function (event, data) {
+            try {
+                const pubKeyHash = Wallet.decodeAddress(data);
+                if (pubKeyHash === undefined) {
+                    event.sender.send('search-key-result', {data: null, errorMsg: '地址格式不正确'});
+                    return;
+                }
+                const stmt = self.db.prepare('SELECT * FROM key WHERE pubkey_hash = ?');
+                const info = stmt.get(pubKeyHash);
+                if (info === undefined) {
+                    event.sender.send('search-key-result', {data: {find: false}, errorMsg: null});
+                } else {
+                    event.sender.send('search-key-result', {
+                        data: {
+                            find: true,
+                            info: {
+                                pubKeyHash: info.pubkey_hash,
+                                createdAt: Date.parse(info.created_at).toLocaleString()
+                            }
+                         },
+                        errorMsg: null
+                    });
+                }
+            } catch (e) {
+                event.sender.send('search-key-result', {data: null, errorMsg: e.message});
+            }
+        });
+
+        /*
         删除key，参数data是pubkeyHash
         返回结果result, 成功返回true，如果失败返回false，errorMsg会包含失败原因
         {
@@ -439,11 +481,36 @@ export class Wallet {
         try {
             let cipher = crypto.createCipheriv('aes-128-cbc', this.aesKey, Buffer.alloc(16, 0));
             const key = bcrypto.btc.decode_key(wif);
+            if (!key.is_valid()) {
+                return undefined;
+            }
             const keyRaw = key.get_raw();
             cipher.update(Buffer.from(keyRaw));
             return {encryptKey:cipher.final('hex'), pubkeyHash:key.get_pubkey().key_id()}
         } catch (e) {
             return undefined;
+        }
+    }
+
+    static decodeAddress(address) {
+        let hash = Wallet.decodeBtcAddress(address);
+        if (hash !== undefined) {
+            return hash;
+        }
+        return undefined;
+    }
+
+    static decodeBtcAddress(address) {
+        try {
+            const mainNetParams = bcrypto.btc.get_chainparams('main');
+            return bcrypto.btc.decode_address(address, mainNetParams);
+        } catch (e) {
+            try {
+                const testNetParams = bcrypto.btc.get_chainparams('testnet');
+                return bcrypto.btc.decode_address(address, testNetParams);
+            } catch (e) {
+                return undefined;
+            }
         }
     }
 }
