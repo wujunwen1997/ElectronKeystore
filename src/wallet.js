@@ -443,6 +443,30 @@ export class Wallet {
                 event.sender.send('delete-key-result', {data: false, errorMsg: e.message});
             }
         });
+
+        /*
+        批量删除key，参数data是pubkeyHash的数组[pubkeyHash0,pubkeyHash1]
+        返回结果result, 成功返回true，如果失败返回false，errorMsg会包含失败原因
+        {
+          data: true,
+          errorMsg: null,
+        }
+         */
+        self.ipcMain.on('batch-delete-key', function (event, data) {
+            try {
+                const update = self.db.prepare('DELETE FROM key WHERE pubkey_hash IN (' + data.map(function (e) {
+                    return `'${e}'`;
+                }).join(',') + ')');
+                const updateInfo = update.run();
+                if (updateInfo.changes >= 1) {
+                    event.sender.send('batch-delete-key-result', {data: true, errorMsg: null});
+                } else {
+                    event.sender.send('batch-delete-key-result', {data: false, errorMsg: '删除失败'});
+                }
+            } catch (e) {
+                event.sender.send('batch-delete-key-result', {data: false, errorMsg: e.message});
+            }
+        });
     }
 
     getWalletDir() {
