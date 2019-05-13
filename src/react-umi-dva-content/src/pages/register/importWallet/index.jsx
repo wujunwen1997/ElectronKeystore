@@ -61,7 +61,7 @@ class RouterComponent extends Component {
               rules: [{ required: true, message: '请导入钱包文件！' }],
               initialValue: this.state.recoverAccountFrm.accountPrivatekeyFilePath
             })(
-              <Input prefix='Keystore' placeholder="请选择"
+              <Input prefix='钱包文件' placeholder="请选择"
                      addonAfter={<div onClick={onImport}>选择钱包文件</div>}/>
             )}
           </Form.Item>
@@ -69,7 +69,7 @@ class RouterComponent extends Component {
             {getFieldDecorator('password', {
               rules: [{ required: true, message: '请输入旧钱包密码' }],
             })(
-              <Input prefix='Keystore密码' type="password" placeholder="请输入旧钱包密码!" />
+              <Input prefix='钱包密码' type="password" placeholder="请输入旧钱包密码!" />
             )}
           </Form.Item>
           <Form.Item hasFeedback>
@@ -80,7 +80,7 @@ class RouterComponent extends Component {
             )}
           </Form.Item>
           <Form.Item>
-            <Button htmlType="submit" block>导入钱包</Button>
+            <Button htmlType="submit" block type="primary">导入钱包</Button>
           </Form.Item>
         </Form>
         <LinkOpt create={true} login={true}/>

@@ -51,7 +51,7 @@ class HomeComponent extends Component {
       },
       {
         title: '操作',
-        dataIndex: 'do',
+        dataIndex: 'operation',
         render: (e, r) =>
           (
             <div className={s.tableBtn}>

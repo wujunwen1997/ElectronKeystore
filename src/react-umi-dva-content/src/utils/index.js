@@ -75,6 +75,14 @@ const checkAesKey = (rule, value, callback) => {
     callback('AesKey格式有误！')
   }
 }
+const checkPassword = (rule, value, callback) => {
+  let reg = /^([a-z0-9\.\@\!\#\$\%\^\&\*\(\)]){8,20}$/i;
+  if (reg.test(value)) {
+    callback()
+  } else {
+    callback('8-20个字符，含数字、字母和符号')
+  }
+}
 export {
   checkWalletName,
   pathMatchRegexp,
@@ -83,5 +91,6 @@ export {
   checkUrl,
   isNumber,
   checkToken,
-  checkAesKey
+  checkAesKey,
+  checkPassword
 }

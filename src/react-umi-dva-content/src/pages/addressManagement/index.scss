@@ -1,3 +1,44 @@
+@import '@/themes/mixin.scss';
+
+@mixin placeholderStyle {
+  color: $auxiliaryColor;font-size: 12px;
+}
 .adsMng{
+  background: $baseBackground;@include width-height(100%, 100%);
   :global .ant-table-placeholder{border: none;border-radius: 0;}
+  .top{
+    height: 65px;width: 100%;padding: 0 16px 0 32px;@include fixed(center, space-between);font-size: 12px;
+    .importBtn{font-size: 12px;}
+    input{
+      background: none;
+    }
+  }
+  :global .ant-table-thead {
+    > tr {
+      background: white;
+      > th{border: none}
+    }
+  }
+  :global table{
+    background: #f6f7fc;
+    @include placeholderStyle;
+    .ant-table-tbody{
+      >tr{
+        &:nth-child(even){background: white}
+      }
+      tr{
+        td{border: none}
+      }
+    }
+  }
+  .botttom{
+    position: absolute;bottom: 0;right: 0;height: 50px;width: 100%;background:$baseBackground;
+    z-index:999;@include fixed(center, space-between);
+    :global .ant-pagination{margin-left: 20px;}
+    .autograph{margin-right: 20px;margin-left: 5px;@include refreshBtn;}
+  }
+  :global .ant-btn-primary{
+    @include newBtn;
+    &:hover{ @include hoverNewBtn;}
+  }
 }

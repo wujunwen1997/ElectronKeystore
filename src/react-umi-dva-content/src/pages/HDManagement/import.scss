@@ -1,0 +1,30 @@
+@import '@/themes/mixin.scss';
+
+.hdContent{
+  @include width-height(100%, 100%);background: $baseBackground;@include fixed(center, center);
+  .hdForm{
+    width: 500px;
+    :global .ant-form-item-label{
+      text-align: left;text-indent: 2em;
+    }
+    label{
+      font-size: 12px !important;color: $gray;
+      &::after{display: none}
+    }
+    :global .ant-form-item-required{
+      &::before{display: none}
+    }
+    :global .ant-btn-primary{
+      font-size: 12px;
+      &:last-child{
+        @include newBtn;margin-left: 10px;
+        &:hover{ @include hoverNewBtn;}
+      }
+    }
+    :global .ant-form-item-control-wrapper{
+      width: 350px;
+      input{@include newInput}
+      .ant-form-explain{font-size: 12px;}
+    }
+  }
+}

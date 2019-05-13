@@ -1,0 +1,48 @@
+@import '@/themes/mixin.scss';
+
+.importAddress{
+  height:100%;
+  :global .ant-menu-item{
+    padding: 0 !important;margin: 0 !important;height: 65px;line-height: 65px;text-align: center;
+  }
+  :global .ant-menu-item-selected{
+    background: #e0f0f7 !important;font-size:14px;
+  }
+  .menu{
+    height: 100%;background: $newBackground;float:left;
+    :global .ant-badge-count{
+      right: -15px;box-shadow: none;min-width: 16px;height: 14px;line-height: 14px;font-size: 11px;
+    }
+  }
+  .content {
+    float: right;
+    @include width-height(calc(100% - 120px), 100%);
+    position: relative;padding: 32px;
+    .wif{
+      font-size: 12px;
+      textarea{
+        border: none;background:rgba(239,239,239,1);border-radius: 0;font-size: 12px !important;
+        padding: 14px 24px;
+        &:focus{box-shadow: none}
+      }
+      .bot{
+        position: fixed;bottom: 0;right: 0;padding: 0 32px;line-height: 40px;
+        background: white;@include width-height(calc(100% - 120px), 40px);
+        input{float: left;width: 195px;font-size: 12px;margin-left: 10px;margin-top: 8px;}
+        button{
+          float: left;margin-top: 8px;
+          &:nth-child(n+2) {
+            float: right;
+          }
+        }
+        .newBtn{
+          @include newBtn;font-size: 12px;
+          &:hover{ @include hoverNewBtn;}
+        }
+        .importBtn{
+          margin-right: 10px;
+        }
+      }
+    }
+  }
+}

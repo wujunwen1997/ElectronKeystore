@@ -6,7 +6,7 @@
     @include contentForm
   }
   .pass{
-    font-size:16px;font-weight:500;color:rgba(153,153,153,1);text-align: right;margin-top: -8px;cursor: pointer;
+    font-size:16px;font-weight:500;color: $gray;text-align: right;margin-top: -8px;cursor: pointer;
     &:hover{
       color: #0c85e8;
     }

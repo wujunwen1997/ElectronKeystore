@@ -22,7 +22,14 @@ export default {
   subscriptions: {
     setupHome({ dispatch, history }) {
       return history.listen(({ pathname, query }) => {
-        if (pathMatchRegexp('/home/:id', pathname) || pathMatchRegexp('/configure', pathname)) {
+        let arr = ['/home/:id', '/configure', '/addressManagement', '/addressManagement/ImportAddress', '/HDManagement', '/HDManagement/importHD'];
+        let needInfo = false;
+        arr.forEach(u => {
+          if (pathMatchRegexp(u, pathname)) {
+            needInfo = true
+          }
+        });
+        if (needInfo) {
           ipcRenderer.send("get-wallet-info");
           const getWallets = (event, arg) => {
             if (arg.data && arg.data !== '{}') {
@@ -32,11 +39,11 @@ export default {
                 router.push('/');
               }
             } else {
-              dispatch({ type: 'setModel', payload: {walletName: '', walletPath: ''}})
+              dispatch({ type: 'setModel', payload: {walletName: '', walletPath: ''}});
               router.push('/');
             }
             ipcRenderer.removeListener("get-wallet-info-result", getWallets)
-          }
+          };
           ipcRenderer.on("get-wallet-info-result", getWallets);
         }
       })
@@ -64,6 +71,10 @@ export default {
           title = 'signatureTransaction'
         } else if (pathMatchRegexp('/configure', pathname)) {
           title = 'configure'
+        } else if (pathMatchRegexp('/addressManagement', pathname) || pathMatchRegexp('/addressManagement/ImportAddress', pathname)) {
+          title = 'addressManagement'
+        } else if (pathMatchRegexp('/HDManagement', pathname) || pathMatchRegexp('/HDManagement/importHD', pathname)) {
+          title = 'HDManagement'
         }
         dispatch({ type: 'setModel', payload: {current: title}})
       })

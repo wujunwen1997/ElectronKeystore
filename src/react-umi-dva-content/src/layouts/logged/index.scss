@@ -1,10 +1,11 @@
+@import '@/themes/mixin.scss';
 .logged{
-  width: 100%;height: 100%;
-  .top{ width: 100%;height: 70px;
+  @include width-height(100%, 100%);
+  .top{ @include width-height(100%, 70px);
     .myHeader{
       height: 70px;background: none;border: none;line-height: 70px;float: left;width: 50%;
       a{
-        height: 100%;width: 120px;text-align: center;line-height: 70px;font-size:14px;font-weight:500;
+        @include width-height(120px, 100%);text-align: center;line-height: 70px;font-size:14px;font-weight:500;
         color:rgba(255,254,254,1);float: left;display: inline-block;
         i{font-size: 20px;margin-right: 9px}
         &:hover{opacity: 0.9;color: white;border: none}

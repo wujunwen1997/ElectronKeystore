@@ -47,7 +47,7 @@ class logged extends Component {
              <Link to="/addressManagement"><Icon type="book" />地址管理</Link>
            </Menu.Item>
            <Menu.Item key="HDManagement">
-             <Link to="/home"><Icon type="unlock" />HD管理</Link>
+             <Link to="/HDManagement"><Icon type="unlock" />HD管理</Link>
            </Menu.Item>
            <Menu.Item key="configure" style={{float: 'right'}}>
              <Link to="/configure"><Icon type="setting" />{this.state.walletName}</Link>

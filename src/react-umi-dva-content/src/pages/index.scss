@@ -2,15 +2,14 @@
 .login{
   width: 460px;@include contentDiv;
   .title{
-    @include contentTitle;
+    @include contentTitle;line-height: 44px;
     img{
-      width: 44px;margin-right: 16px;height: 44px;
+      margin-right: 16px;@include width-height(44px, 44px);margin-top: -5px;
     }
-    div{display: inline-block;line-height: 24px;}
   }
   :global  .login-form{
     @include contentForm;
-    .ant-form-item{color:rgba(102,102,102,1);}
+    .ant-form-item{color: $auxiliaryColor;}
     .ant-select-selection--single{height: 40px;}
     .ant-select-selection__rendered{line-height: 40px !important;padding-left: 89px;}
   }

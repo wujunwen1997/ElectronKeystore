@@ -410,7 +410,7 @@ export class Wallet {
                         data: {
                             find: true,
                             info: {
-                                pubKeyHash: info.pubkey_hash,
+                                pubkeyHash: info.pubkey_hash,
                                 createdAt: dateFormat(date, "yyyy-mm-d HH:MM:ss")
                             }
                          },

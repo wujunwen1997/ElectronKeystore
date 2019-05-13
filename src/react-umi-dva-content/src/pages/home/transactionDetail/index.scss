@@ -1,13 +1,15 @@
+@import '@/themes/mixin.scss';
 .graphDetail{
-  width: 100%;padding: 20px 50px 0;font-size: 12px;height: calc(100% - 40px);position: relative;
+  padding: 20px 50px 0;font-size: 12px;position: relative;@include width-height(100%, calc(100% - 40px));
   .load{font-size: 24px;position: absolute;top:20px;right: 20px;}
   .top{
-    width: 100%;height: 51px;
+    @include width-height(100%, 51px);
     >li{
-      width: 25%;float: left;border-right: 1px solid rgba(239,239,239,1);;text-align: center;font-size: 12px;height: 100%;
+      float: left;border-right: 1px solid rgba(239,239,239,1);text-align: center;font-size: 12px;
+      @include width-height(25%, 100%);
       &:last-child{border: none;}
-      >p{color:rgba(153,153,153,1);}
-      >span{color:rgba(102,102,102,1);line-height: 50px;}
+      >p{color: $gray;}
+      >span{color: $auxiliaryColor;line-height: 50px;}
     }
   }
   .amount{
@@ -18,7 +20,7 @@
       >ul{
         margin-top: 20px;
         li{
-          color:rgba(102,102,102,1);margin-bottom: 12px;text-align: left;
+          color: $auxiliaryColor;margin-bottom: 12px;text-align: left;
           &:last-child{margin: 0}
           .address{float: right}
         }
@@ -37,7 +39,8 @@
   }
   .max{height: calc(100% - 146px);}
   .bot{
-    position: fixed;bottom: 0;right: 0;width: calc(100% - 120px);padding: 0 40px;height: 40px;line-height: 40px;background: white;
+    position: fixed;bottom: 0;right: 0;padding: 0 40px;line-height: 40px;background: white;
+    @include width-height(calc(100% - 120px), 40px);
     >div{width: 50%;float: left;border: none;background: none}
     >button{float: right;margin-left:6px; };
   }

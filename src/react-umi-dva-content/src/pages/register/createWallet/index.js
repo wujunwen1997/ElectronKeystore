@@ -7,6 +7,7 @@ import {checkWalletName} from '@/utils/index'
 import {ipcRenderer} from '@/config/Electron.js'
 import LinkOpt from '@/components/LinkOpts'
 import errorMsg from "@/utils/errorMsg.js";
+import {checkPassword} from "@/utils/index.js";
 
 @connect(({userModel}) => ({userModel}))
 class RouterComponent extends Component {
@@ -34,14 +35,6 @@ class RouterComponent extends Component {
     const { form, userModel } = this.props;
     const {aesKey, aesToken, url} = userModel
     const { getFieldDecorator } = form;
-    const checkPassword = (rule, value, callback) => {
-      let reg = /^([a-z0-9\.\@\!\#\$\%\^\&\*\(\)]){8,20}$/i;
-      if (reg.test(value)) {
-        callback()
-      } else {
-        callback('8-20个字符，含数字、字母和符号')
-      }
-    }
     const surePassword = (rule, value, callback) => {
       this.props.form.getFieldsValue().password === value ? callback() : callback('两次输入密码不同')
     }
