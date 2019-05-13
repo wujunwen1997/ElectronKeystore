@@ -53,6 +53,7 @@
   },
   "dependencies": {
     "better-sqlite3": "^5.4.0",
+    "dateformat": "^3.0.3",
     "electron": "^5.0.0",
     "electron-compile": "^6.4.4",
     "electron-devtools-installer": "^2.2.4",

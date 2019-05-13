@@ -4,6 +4,7 @@ const fs = require('fs');
 const Database = require('better-sqlite3');
 const crypto = require('crypto');
 const bcrypto = require('blockchain-crypto');
+const dateFormat = require('dateformat');
 
 export class Wallet {
 
@@ -251,8 +252,8 @@ export class Wallet {
                         const select = self.db.prepare('SELECT * FROM key WHERE pubkey_hash = ?');
                         const selectInfo = select.get(importResult.pubkeyHash);
                         if (selectInfo === undefined) {
-                            const insert = self.db.prepare('INSERT INTO key VALUES (?, ?, ?)');
-                            const insertInfo = insert.run(importResult.pubkeyHash, importResult.encryptKey, new Date().getTime());
+                            const insert = self.db.prepare('INSERT INTO key VALUES (?, ?, ?, ?)');
+                            const insertInfo = insert.run(importResult.pubkeyHash, importResult.p2shP2wpkh, importResult.encryptKey, new Date().getTime());
                             if (insertInfo.changes === 1) {
                                 success += 1;
                             } else {
@@ -345,9 +346,10 @@ export class Wallet {
                 const selectInfo = selectStmt.all(data.pageSize, offset);
                 const elements = [];
                 for (let i = 0; i < selectInfo.length; i++) {
+                    const date = new Date(parseInt(selectInfo[i].created_at));
                     elements.push({
                         pubkeyHash:selectInfo[i].pubkey_hash,
-                        createdAt:Date.parse(selectInfo[i].created_at).toLocaleString()
+                        createdAt:dateFormat(date, "yyyy-mm-d HH:MM:ss")
                     })
                 }
                 event.sender.send('query-key-result', {
@@ -389,12 +391,13 @@ export class Wallet {
                 if (info === undefined) {
                     event.sender.send('search-key-result', {data: {find: false}, errorMsg: null});
                 } else {
+                    const date = new Date(parseInt(info.created_at));
                     event.sender.send('search-key-result', {
                         data: {
                             find: true,
                             info: {
                                 pubKeyHash: info.pubkey_hash,
-                                createdAt: Date.parse(info.created_at).toLocaleString()
+                                createdAt: dateFormat(date, "yyyy-mm-d HH:MM:ss")
                             }
                          },
                         errorMsg: null
@@ -484,9 +487,14 @@ export class Wallet {
             if (!key.is_valid()) {
                 return undefined;
             }
+            const pubkey = key.get_pubkey();
             const keyRaw = key.get_raw();
             cipher.update(Buffer.from(keyRaw));
-            return {encryptKey:cipher.final('hex'), pubkeyHash:key.get_pubkey().key_id()}
+            return {
+                encryptKey:cipher.final('hex'),
+                pubkeyHash:bcrypto.btc.get_outputscript_for_key(pubkey, bcrypto.P2PKH),
+                p2shP2wpkh:bcrypto.btc.get_outputscript_for_key(pubkey, bcrypto.P2SH)
+            }
         } catch (e) {
             return undefined;
         }
@@ -503,11 +511,13 @@ export class Wallet {
     static decodeBtcAddress(address) {
         try {
             const mainNetParams = bcrypto.btc.get_chainparams('main');
-            return bcrypto.btc.decode_address(address, mainNetParams);
+            const outputscript = bcrypto.btc.decode_address(address, mainNetParams);
+            return bcrypto.to_hex(outputscript.get_bytes());
         } catch (e) {
             try {
                 const testNetParams = bcrypto.btc.get_chainparams('testnet');
-                return bcrypto.btc.decode_address(address, testNetParams);
+                const outputscript = bcrypto.btc.decode_address(address, testNetParams);
+                return bcrypto.to_hex(outputscript.get_bytes());
             } catch (e) {
                 return undefined;
             }
