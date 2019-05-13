@@ -308,9 +308,10 @@ export class Wallet {
         返回结果result, 按照创建时间降序，成功返回分页数据，如果失败返回null，errorMsg会包含失败原因
         {
           data: {
+            totalElements:12, // 总数
             totalPage:3, // 总页数
             pageNum:0, // 当前页位置
-            elements:[ // 数据
+            elements:[ // 当前页数据
               {
                 pubkeyHash:'',
                 createdAt:''
@@ -331,6 +332,7 @@ export class Wallet {
                 if (total === 0) {
                     event.sender.send('query-key-result', {
                         data: {
+                            totalElements:0,
                             totalPage:0,
                             pageNum:data.pageNum,
                             elements:[]
@@ -343,6 +345,7 @@ export class Wallet {
                 if (data.pageNum > totalPage - 1) {
                     event.sender.send('query-key-result', {
                         data: {
+                            totalElements:total,
                             totalPage:totalPage,
                             pageNum:data.pageNum,
                             elements:[]
@@ -364,6 +367,7 @@ export class Wallet {
                 }
                 event.sender.send('query-key-result', {
                     data: {
+                        totalElements:total,
                         totalPage:totalPage,
                         pageNum:data.pageNum,
                         elements:elements
