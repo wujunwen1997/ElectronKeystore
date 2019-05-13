@@ -4,6 +4,7 @@ const fs = require('fs');
 const Database = require('better-sqlite3');
 const crypto = require('crypto');
 const bcrypto = require('blockchain-crypto');
+const readline = require('readline');
 const dateFormat = require('dateformat');
 
 export class Wallet {
@@ -246,22 +247,12 @@ export class Wallet {
                 let duplicate = 0;
                 data.replace(/\n/g, " ").split(" ").forEach(function (wif) {
                     let importResult = self.importWif(wif);
-                    if (importResult === undefined) {
+                    if (importResult === -1) {
                         fail += 1;
-                    } else {
-                        const select = self.db.prepare('SELECT * FROM key WHERE pubkey_hash = ?');
-                        const selectInfo = select.get(importResult.pubkeyHash);
-                        if (selectInfo === undefined) {
-                            const insert = self.db.prepare('INSERT INTO key VALUES (?, ?, ?, ?)');
-                            const insertInfo = insert.run(importResult.pubkeyHash, importResult.p2shP2wpkh, importResult.encryptKey, new Date().getTime());
-                            if (insertInfo.changes === 1) {
-                                success += 1;
-                            } else {
-                                fail += 1;
-                            }
-                        } else {
-                            duplicate += 1;
-                        }
+                    } else if (importResult === 1){
+                        success += 1;
+                    } else if (importResult === 0){
+                        duplicate += 1
                     }
                 });
                 event.sender.send('import-wif-result', {data: {success, fail, duplicate}, errorMsg: null});
@@ -271,7 +262,7 @@ export class Wallet {
         });
 
         /*
-        从文件导入wif，参数data是file
+        从文件导入wif，参数data是file path
         返回结果result, 成功返回导入数据，如果导入出现异常则返回异常原因
         {
           data: {
@@ -284,6 +275,25 @@ export class Wallet {
          */
         self.ipcMain.on('import-wif-from-file', function (event, data) {
             try {
+                const lineReader = readline.createInterface({
+                    input: fs.createReadStream(data)
+                });
+                let success = 0;
+                let fail = 0;
+                let duplicate = 0;
+                lineReader.on('line', function (wif) {
+                    let importResult = self.importWif(wif);
+                    if (importResult === -1) {
+                        fail += 1;
+                    } else if (importResult === 1){
+                        success += 1;
+                    } else if (importResult === 0){
+                        duplicate += 1
+                    }
+                });
+                lineReader.on('close', function () {
+                    event.sender.send('import-wif-from-file-result', {data: {success, fail, duplicate}, errorMsg: null});
+                });
             } catch (e) {
                 event.sender.send('import-wif-from-file-result', {data: null, errorMsg: e.message});
             }
@@ -381,13 +391,13 @@ export class Wallet {
          */
         self.ipcMain.on('search-key', function (event, data) {
             try {
-                const pubKeyHash = Wallet.decodeAddress(data);
-                if (pubKeyHash === undefined) {
+                const hash = Wallet.decodeAddress(data);
+                if (hash === undefined) {
                     event.sender.send('search-key-result', {data: null, errorMsg: '地址格式不正确'});
                     return;
                 }
-                const stmt = self.db.prepare('SELECT * FROM key WHERE pubkey_hash = ?');
-                const info = stmt.get(pubKeyHash);
+                const stmt = self.db.prepare('SELECT * FROM key WHERE pubkey_hash = ? OR p2sh_p2wpkh = ?');
+                const info = stmt.get(hash, hash);
                 if (info === undefined) {
                     event.sender.send('search-key-result', {data: {find: false}, errorMsg: null});
                 } else {
@@ -472,15 +482,36 @@ export class Wallet {
     }
 
     importWif(wif) {
+        let importResult = this.decodeWif(wif);
+        if (importResult === undefined) {
+            return -1;
+        } else {
+            const select = this.db.prepare('SELECT * FROM key WHERE pubkey_hash = ?');
+            const selectInfo = select.get(importResult.pubkeyHash);
+            if (selectInfo === undefined) {
+                const insert = this.db.prepare('INSERT INTO key VALUES (?, ?, ?, ?)');
+                const insertInfo = insert.run(importResult.pubkeyHash, importResult.p2shP2wpkh, importResult.encryptKey, new Date().getTime());
+                if (insertInfo.changes === 1) {
+                    return 1;
+                } else {
+                    return -1;
+                }
+            } else {
+                return 0;
+            }
+        }
+    }
+
+    decodeWif(wif) {
         // 每个链的每个网络都逐个尝试
-        let result = this.importBtcMainWif(wif);
+        let result = this.decodeBtcMainWif(wif);
         if (result !== undefined) {
             return result;
         }
         return undefined;
     }
 
-    importBtcMainWif(wif) {
+    decodeBtcMainWif(wif) {
         try {
             let cipher = crypto.createCipheriv('aes-128-cbc', this.aesKey, Buffer.alloc(16, 0));
             const key = bcrypto.btc.decode_key(wif);
