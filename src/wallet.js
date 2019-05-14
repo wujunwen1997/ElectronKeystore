@@ -300,6 +300,47 @@ export class Wallet {
         });
 
         /*
+        导入eth json，参数data是
+        {
+          json:'', // json字符串
+          password:''
+        }
+        返回结果result, 成功返回true，如果导入出现异常则返回异常原因
+        {
+          data: true,
+          errorMsg: null,
+        }
+         */
+        self.ipcMain.on('import-eth-json', function (event, data) {
+            try {
+                event.sender.send('import-eth-json-result', self.importEthJson(data.json, data.password));
+            } catch (e) {
+                event.sender.send('import-eth-json-result', {data: false, errorMsg: e.message});
+            }
+        });
+
+        /*
+        从文件导入eth json，参数data是
+        {
+          jsonFilePath:'', // json文件路径
+          password:''
+        }
+        返回结果result, 成功返回true，如果导入出现异常则返回异常原因
+        {
+          data: true,
+          errorMsg: null,
+        }
+         */
+        self.ipcMain.on('import-eth-json-from-file', function (event, data) {
+            try {
+                const json = fs.readFileSync(data.jsonFilePath, 'utf8');
+                event.sender.send('import-eth-json-from-file-result', self.importEthJson(json, data.password));
+            } catch (e) {
+                event.sender.send('import-eth-json-from-file-result', {data: false, errorMsg: e.message});
+            }
+        });
+
+        /*
         查看key，参数data是
         {
           pageNum:0, // 从0开始
@@ -514,19 +555,23 @@ export class Wallet {
         if (importResult === undefined) {
             return -1;
         } else {
-            const select = this.db.prepare('SELECT * FROM key WHERE pubkey_hash = ?');
-            const selectInfo = select.get(importResult.pubkeyHash);
-            if (selectInfo === undefined) {
-                const insert = this.db.prepare('INSERT INTO key VALUES (?, ?, ?, ?)');
-                const insertInfo = insert.run(importResult.pubkeyHash, importResult.p2shP2wpkh, importResult.encryptKey, new Date().getTime());
-                if (insertInfo.changes === 1) {
-                    return 1;
-                } else {
-                    return -1;
-                }
+            return this.saveKey(importResult);
+        }
+    }
+
+    saveKey(importResult) {
+        const select = this.db.prepare('SELECT * FROM key WHERE pubkey_hash = ?');
+        const selectInfo = select.get(importResult.pubkeyHash);
+        if (selectInfo === undefined) {
+            const insert = this.db.prepare('INSERT INTO key VALUES (?, ?, ?, ?)');
+            const insertInfo = insert.run(importResult.pubkeyHash, importResult.p2shP2wpkh, importResult.encryptKey, new Date().getTime());
+            if (insertInfo.changes === 1) {
+                return 1;
             } else {
-                return 0;
+                return -1;
             }
+        } else {
+            return 0;
         }
     }
 
@@ -541,13 +586,13 @@ export class Wallet {
 
     decodeBtcMainWif(wif) {
         try {
-            let cipher = crypto.createCipheriv('aes-128-cbc', this.aesKey, Buffer.alloc(16, 0));
             const key = bcrypto.btc.decode_key(wif);
             if (!key.is_valid()) {
                 return undefined;
             }
             const pubkey = key.get_pubkey();
             const keyRaw = key.get_raw();
+            let cipher = crypto.createCipheriv('aes-128-cbc', this.aesKey, Buffer.alloc(16, 0));
             cipher.update(Buffer.from(keyRaw));
             return {
                 encryptKey:cipher.final('hex'),
@@ -556,6 +601,45 @@ export class Wallet {
             }
         } catch (e) {
             return undefined;
+        }
+    }
+
+    importEthJson(json, password) {
+        const importResult = this.decodeEthJson(json, password);
+        if (!importResult.success) {
+            return {data:false, errorMsg:importResult.errorMsg};
+        } else {
+            const save = this.saveKey(importResult.data);
+            if (save === 0) {
+                return {data:false, errorMsg:'key已存在'};
+            } else if (save === 1) {
+                return {data:true, errorMsg:null};
+            } else {
+                return {data:false, errorMsg:'key存储失败'};
+            }
+        }
+    }
+
+    decodeEthJson(json, password) {
+        try {
+            const key = bcrypto.eth.decode_key(json, password);
+            if (!key.is_valid()) {
+                return {success:false, errorMsg:'key不正确'};
+            }
+            const pubkey = key.get_pubkey();
+            const keyRaw = key.get_raw();
+            let cipher = crypto.createCipheriv('aes-128-cbc', this.aesKey, Buffer.alloc(16, 0));
+            cipher.update(Buffer.from(keyRaw));
+            return {
+                success:true,
+                data:{
+                    encryptKey:cipher.final('hex'),
+                    pubkeyHash:bcrypto.eth_PublicKey.to_address(pubkey),
+                    p2shP2wpkh:null
+                }
+            }
+        } catch (e) {
+            return {success:false, errorMsg:'json格式或者密码不正确'};
         }
     }
 
