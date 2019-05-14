@@ -18,6 +18,7 @@ class App extends Component {
         const getDelKeysResult = (event, arg) => {
           const success = () => {
             message.success('导入成功')
+            router.push('/HDManagement')
           }
           errorMsg(arg, success)
           ipcRenderer.removeListener("import-hd-result", getDelKeysResult)
@@ -47,7 +48,7 @@ class App extends Component {
             {getFieldDecorator('password', {
               rules: [{ required: true, message: '请输入您的密码' }, { validator: checkPassword}],
             })(
-              <Input placeholder='请输入您的密码'/>
+              <Input type={'password'} placeholder='请输入您的密码'/>
             )}
           </Form.Item>
           <Form.Item wrapperCol={{ span: 12, offset: 5 }}>

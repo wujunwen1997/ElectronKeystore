@@ -34,7 +34,7 @@ $auxiliaryColor: rgba(102,102,102,1);
   background:rgba(7,123,231,1);color:rgba(255,255,255,1);
 }
 @mixin newBtn{
-  background:rgba(225,228,234,1);color: $auxiliaryColor;border: #E1E4EA;box-shadow: none;text-shadow: none;
+  background:rgba(225,228,234,1);color: $auxiliaryColor;border: #E1E4EA;box-shadow: none;text-shadow: none;font-size: 12px !important;
   &:hover{
     @include hoverNewBtn;
   }
