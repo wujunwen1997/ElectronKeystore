@@ -1,7 +1,9 @@
 import React, {Component} from 'react'
-import {Form, Input, Button,} from 'antd';
+import {Form, Input, Button, message} from 'antd';
 import router from "umi/router";
 import s from './import.scss'
+import {ipcRenderer} from '@/config/Electron.js'
+import errorMsg from "@/utils/errorMsg.js";
 import {checkPassword, checkWalletName} from "@/utils/index.js";
 
 class App extends Component {
@@ -12,7 +14,15 @@ class App extends Component {
     e.preventDefault();
     this.props.form.validateFields((err, values) => {
       if (!err) {
-        console.log('Received values of form: ', values);
+        ipcRenderer.send('import-hd', values)
+        const getDelKeysResult = (event, arg) => {
+          const success = () => {
+            message.success('导入成功')
+          }
+          errorMsg(arg, success)
+          ipcRenderer.removeListener("import-hd-result", getDelKeysResult)
+        }
+        ipcRenderer.on("import-hd-result", getDelKeysResult);
       }
     });
   }
@@ -25,8 +35,8 @@ class App extends Component {
           <Form.Item
             label="助记词"
           >
-            {getFieldDecorator('note', {
-              rules: [{ required: true, message: '请输入您的助记词' }, { validator: checkWalletName}],
+            {getFieldDecorator('mnemonic', {
+              rules: [{ required: true, message: '请输入您的助记词' }],
             })(
               <Input placeholder='请输入您的助记词'/>
             )}

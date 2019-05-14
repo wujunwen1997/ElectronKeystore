@@ -27,6 +27,7 @@ a{
   background: none;
 }
 ::-webkit-scrollbar-thumb {/*滚动条里面小方块*/
-  background: #EFEFEF;
+  background: #e0f0f7;
   border-radius: 6px;
 }
+::-webkit-scrollbar-thumb:hover{background: #e0f0f7;border-radius: 6px;}

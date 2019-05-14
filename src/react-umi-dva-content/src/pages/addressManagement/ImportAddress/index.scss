@@ -19,10 +19,10 @@
     @include width-height(calc(100% - 120px), 100%);
     position: relative;padding: 32px;
     .wif{
-      font-size: 12px;
+      font-size: 12px;height: 100%;padding: 0 0 34px 0;
       textarea{
         border: none;background:rgba(239,239,239,1);border-radius: 0;font-size: 12px !important;
-        padding: 14px 24px;
+        padding: 14px 24px;height: 100%;
         &:focus{box-shadow: none}
       }
       .bot{

@@ -4,7 +4,6 @@ import s from './index.scss'
 import router from "umi/router";
 import {connect} from "dva";
 import {ipcRenderer} from '@/config/Electron.js'
-import {timeFormat} from '@/utils'
 import errorMsg from "@/utils/errorMsg.js";
 import { stringify } from 'qs'
 const confirm = Modal.confirm;

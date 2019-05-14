@@ -1,5 +1,5 @@
 import React, {Component} from 'react'
-import { Menu, Input, Button, message, Popconfirm } from 'antd';
+import { Menu, Input, Button, message } from 'antd';
 import {connect} from "dva";
 import s from './index.scss'
 import {ipcRenderer} from '@/config/Electron.js'
@@ -18,7 +18,17 @@ class Sider extends Component {
   };
   render() {
     const {addressManagement, dispatch} = this.props;
-    const {isWif, wifText, jsonText} = addressManagement;
+    const {isWif, wifText, jsonText, password, wifUrl, jsonUrl} = addressManagement;
+    const ReadFile = (event, arg) => {
+      const success = () => {
+          dispatch({
+            type: 'addressManagement/setModel',
+            payload: isWif ? {wifText:  wifText + '\n' + arg.data} : {jsonText: jsonText + '\n' + arg.data}
+          })
+      };
+      errorMsg(arg, success);
+      ipcRenderer.removeListener("read-file-result", ReadFile)
+    };
     //  导入
     const importWifEvent = (event, arg) => {
       const success = () => {
@@ -34,12 +44,31 @@ class Sider extends Component {
       };
       errorMsg(arg, success, fail);
       ipcRenderer.removeListener("import-wif-result", importWifEvent)
-      ipcRenderer.removeListener("import-wif-from-file-result", importWifEvent)
     };
+    const importJsonEvent = (event, arg) => {
+      const success = () => {
+        message.success('私钥导入成功！')
+      };
+      errorMsg(arg, success,);
+      ipcRenderer.removeListener("import-eth-json-result", importJsonEvent)
+    }
     const onImport = () => {
       // TODO：判断格式，从而导入不同的私钥
-      ipcRenderer.send('import-wif', wifText);
-      ipcRenderer.on("import-wif-result", importWifEvent);
+      if (isWif) {
+        if (!wifText) {
+          message.warning('请输入地址')
+          return
+        }
+        ipcRenderer.send('import-wif', wifText);
+        ipcRenderer.on("import-wif-result", importWifEvent);
+      } else {
+        if (!password || !jsonText) {
+          message.warning('请确认输入JSON私钥和解锁密码')
+          return
+        }
+        ipcRenderer.send('import-eth-json', {json: jsonText, password: password});
+        ipcRenderer.on("import-eth-json-result", importJsonEvent);
+      }
     };
     const handleClick = (e) => {
       let obj = {isWif: e.key === 'wif'};
@@ -51,19 +80,32 @@ class Sider extends Component {
     const changeTextAres = (e) => {
       const { value } = e.target;
       let obj = isWif ? {wifText: value} : {jsonText: value};
+      if (value === '') {
+        Object.assign(obj, isWif ? {wifUrl: ''} : {jsonUrl: ''})
+      }
       dispatch({
         type: 'addressManagement/setModel',
         payload: obj
       })
     };
+    const changeInput = (e) => {
+      const { value } = e.target;
+      dispatch({
+        type: 'addressManagement/setModel',
+        payload: {password: value}
+      })
+    }
     const fileImport = () => {
       const { dialog } = remote
-      let that = this
       dialog.showOpenDialog({title: '链付：私钥文件导入', filters: [{extensions: ['*']}]}, function (filePaths) {
         if (filePaths) {
           if (filePaths.length > 0) {
-            ipcRenderer.send('import-wif-from-file', filePaths[0])
-            ipcRenderer.on("import-wif-from-file-result", importWifEvent);
+            dispatch({
+              type: 'addressManagement/setModel',
+              payload: isWif ? {wifUrl:  filePaths[0]} : {jsonUrl: filePaths[0]}
+            })
+            ipcRenderer.send('read-file', filePaths[0])
+            ipcRenderer.on("read-file-result", ReadFile);
           } else {
             message.warning('选择文件为空！');
           }
@@ -90,13 +132,13 @@ class Sider extends Component {
         </Menu>
         <div className={s.content}>
           <div className={s.wif}>
-            <TextArea rows={14} onChange={changeTextAres} defaultValue={isWif ? wifText : jsonText}
+            <TextArea onChange={changeTextAres} value={isWif ? wifText : jsonText}
                       placeholder={isWif ? '在此粘贴WIF格式的私钥字符串，或从文件载入，多个私钥以进行换行分隔。' :
                         '在此粘贴JSON格式的私钥字符串，或从文件载入。'}/>
             <div className={s.bot}>
               <Button type={'primary'} size={'small'} className={s.newBtn} onClick={fileImport}>从文件载入</Button>
-              {<span></span>}
-              {!isWif && <Input size="small" placeholder="请在此输入解锁密码" />}
+              {(isWif ? wifUrl : jsonUrl) && <span style={{marginLeft: '10px'}}>{isWif ? wifUrl : jsonUrl}</span>}
+              {!isWif && <Input size="small" type={'password'} onChange={changeInput} placeholder="请在此输入解锁密码" />}
               <Button type={'primary'} size={'small'} className={s.newBtn} onClick={this.goBack}>返回</Button>
                 <Button type={'primary'} size={'small'} className={s.importBtn} onClick={onImport}>导入</Button>
             </div>

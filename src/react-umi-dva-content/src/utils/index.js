@@ -80,7 +80,7 @@ const checkPassword = (rule, value, callback) => {
   if (reg.test(value)) {
     callback()
   } else {
-    callback('8-20个字符，含数字、字母和符号')
+    callback('8-20个字符')
   }
 }
 export {
@@ -92,5 +92,5 @@ export {
   isNumber,
   checkToken,
   checkAesKey,
-  checkPassword
+  checkPassword,
 }
