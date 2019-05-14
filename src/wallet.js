@@ -229,6 +229,23 @@ export class Wallet {
         });
 
         /*
+        读取文件内容，参数data是file path
+        返回结果result, 成功返回文件内容，如果读取出现异常则返回异常原因
+        {
+          data: '', // 文件内容
+          errorMsg: null,
+        }
+         */
+        self.ipcMain.on('read-file', function (event, data) {
+            try {
+                const fileData = fs.readFileSync(data, 'utf8');
+                event.sender.send('read-file-result', {data: fileData, errorMsg: null});
+            } catch (e) {
+                event.sender.send('read-file-result', {data: null, errorMsg: e.message});
+            }
+        });
+
+        /*
         导入wif，参数data是string
         返回结果result, 成功返回导入数据，如果导入出现异常则返回异常原因
         {
