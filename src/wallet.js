@@ -380,61 +380,13 @@ export class Wallet {
         }
          */
         self.ipcMain.on('query-key', function (event, data) {
-            try {
-                const totalStmt = self.db.prepare('SELECT count(*) AS count FROM key');
-                const totalInfo = totalStmt.get();
-                let total = 0;
-                if (totalInfo !== undefined) {
-                    total = totalInfo.count;
+            self.pageQueryTable(event, data, 'key', function (row) {
+                const date = new Date(parseInt(row.created_at));
+                return {
+                    pubkeyHash:row.pubkey_hash,
+                    createdAt:dateFormat(date, "yyyy-mm-d HH:MM:ss")
                 }
-                if (total === 0) {
-                    event.sender.send('query-key-result', {
-                        data: {
-                            totalElements:0,
-                            totalPage:0,
-                            pageNum:data.pageNum,
-                            elements:[]
-                        },
-                        errorMsg: null
-                    });
-                    return;
-                }
-                const totalPage = Math.ceil(total/data.pageSize);
-                if (data.pageNum > totalPage - 1) {
-                    event.sender.send('query-key-result', {
-                        data: {
-                            totalElements:total,
-                            totalPage:totalPage,
-                            pageNum:data.pageNum,
-                            elements:[]
-                        },
-                        errorMsg: null
-                    });
-                    return;
-                }
-                const offset = data.pageNum * data.pageSize;
-                const selectStmt = self.db.prepare('SELECT * FROM key ORDER BY created_at DESC LIMIT ? OFFSET ?');
-                const selectInfo = selectStmt.all(data.pageSize, offset);
-                const elements = [];
-                for (let i = 0; i < selectInfo.length; i++) {
-                    const date = new Date(parseInt(selectInfo[i].created_at));
-                    elements.push({
-                        pubkeyHash:selectInfo[i].pubkey_hash,
-                        createdAt:dateFormat(date, "yyyy-mm-d HH:MM:ss")
-                    })
-                }
-                event.sender.send('query-key-result', {
-                    data: {
-                        totalElements:total,
-                        totalPage:totalPage,
-                        pageNum:data.pageNum,
-                        elements:elements
-                    },
-                    errorMsg: null
-                });
-            } catch (e) {
-                event.sender.send('query-key-result', {data: null, errorMsg: e.message});
-            }
+            });
         });
 
         /*
@@ -559,6 +511,84 @@ export class Wallet {
                 }
             } catch (e) {
                 event.sender.send('import-hd-result', {data: false, errorMsg: e.message});
+            }
+        });
+
+        /*
+        查看hd，参数data是
+        {
+          pageNum:0, // 从0开始
+          pageSize:10
+        }
+        返回结果result, 按照创建时间降序，成功返回分页数据，如果失败返回null，errorMsg会包含失败原因
+        {
+          data: {
+            totalElements:12, // 总数
+            totalPage:3, // 总页数
+            pageNum:0, // 当前页位置
+            elements:[ // 当前页数据
+              {
+                mnemonic:'',
+                createdAt:''
+              }
+            ]
+          },
+          errorMsg: null,
+        }
+         */
+        self.ipcMain.on('query-hd', function (event, data) {
+            self.pageQueryTable(event, data, 'hd', function (row) {
+                const date = new Date(parseInt(row.created_at));
+                return {
+                    mnemonic:row.mnemonic,
+                    createdAt:dateFormat(date, "yyyy-mm-d HH:MM:ss")
+                }
+            });
+        });
+
+        /*
+        删除hd，参数data是mnemonic
+        返回结果result, 成功返回true，如果失败返回false，errorMsg会包含失败原因
+        {
+          data: true,
+          errorMsg: null,
+        }
+         */
+        self.ipcMain.on('delete-hd', function (event, data) {
+            try {
+                const update = self.db.prepare('DELETE FROM hd WHERE mnemonic = ?');
+                const updateInfo = update.run(data);
+                if (updateInfo.changes === 1) {
+                    event.sender.send('delete-hd-result', {data: true, errorMsg: null});
+                } else {
+                    event.sender.send('delete-hd-result', {data: false, errorMsg: '助记词不存在'});
+                }
+            } catch (e) {
+                event.sender.send('delete-hd-result', {data: false, errorMsg: e.message});
+            }
+        });
+
+        /*
+        批量删除hd，参数data是mnemonic的数组[mnemonic0,mnemonic1]
+        返回结果result, 成功返回true，如果失败返回false，errorMsg会包含失败原因
+        {
+          data: true,
+          errorMsg: null,
+        }
+         */
+        self.ipcMain.on('batch-delete-hd', function (event, data) {
+            try {
+                const update = self.db.prepare('DELETE FROM hd WHERE mnemonic IN (' + data.map(function (e) {
+                    return `'${e}'`;
+                }).join(',') + ')');
+                const updateInfo = update.run();
+                if (updateInfo.changes >= 1) {
+                    event.sender.send('batch-delete-hd-result', {data: true, errorMsg: null});
+                } else {
+                    event.sender.send('batch-delete-hd-result', {data: false, errorMsg: '删除失败'});
+                }
+            } catch (e) {
+                event.sender.send('batch-delete-hd-result', {data: false, errorMsg: e.message});
             }
         });
     }
@@ -717,6 +747,60 @@ export class Wallet {
             } catch (e) {
                 return undefined;
             }
+        }
+    }
+
+    pageQueryTable(event, data, tableName, buildElementFunc) {
+        try {
+            const totalStmt = this.db.prepare(`SELECT count(*) AS count FROM ${tableName}`);
+            const totalInfo = totalStmt.get();
+            let total = 0;
+            if (totalInfo !== undefined) {
+                total = totalInfo.count;
+            }
+            if (total === 0) {
+                event.sender.send(`query-${tableName}-result`, {
+                    data: {
+                        totalElements:0,
+                        totalPage:0,
+                        pageNum:data.pageNum,
+                        elements:[]
+                    },
+                    errorMsg: null
+                });
+                return;
+            }
+            const totalPage = Math.ceil(total/data.pageSize);
+            if (data.pageNum > totalPage - 1) {
+                event.sender.send(`query-${tableName}-result`, {
+                    data: {
+                        totalElements:total,
+                        totalPage:totalPage,
+                        pageNum:data.pageNum,
+                        elements:[]
+                    },
+                    errorMsg: null
+                });
+                return;
+            }
+            const offset = data.pageNum * data.pageSize;
+            const selectStmt = this.db.prepare(`SELECT * FROM ${tableName} ORDER BY created_at DESC LIMIT ? OFFSET ?`);
+            const selectInfo = selectStmt.all(data.pageSize, offset);
+            const elements = [];
+            for (let i = 0; i < selectInfo.length; i++) {
+                elements.push(buildElementFunc(selectInfo[i]));
+            }
+            event.sender.send(`query-${tableName}-result`, {
+                data: {
+                    totalElements:total,
+                    totalPage:totalPage,
+                    pageNum:data.pageNum,
+                    elements:elements
+                },
+                errorMsg: null
+            });
+        } catch (e) {
+            event.sender.send(`query-${tableName}-result`, {data: null, errorMsg: e.message});
         }
     }
 }
