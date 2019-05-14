@@ -660,16 +660,16 @@ export class Wallet {
 
     decodeWif(wif) {
         // 每个链的每个网络都逐个尝试
-        let result = this.decodeBtcMainWif(wif);
-        if (result !== undefined) {
-            return result;
+        let result = this.decodeBlockchainWif('btc', wif);
+        if (result === undefined) {
+            result = this.decodeBlockchainWif('rcoin', wif); // rcoin和ecoin导入wif的逻辑是一样的
         }
-        return undefined;
+        return result;
     }
 
-    decodeBtcMainWif(wif) {
+    decodeBlockchainWif(blockchain, wif) {
         try {
-            const key = bcrypto.btc.decode_key(wif);
+            const key = bcrypto[blockchain].decode_key(wif);
             if (!key.is_valid()) {
                 return undefined;
             }
@@ -679,8 +679,8 @@ export class Wallet {
             cipher.update(Buffer.from(keyRaw));
             return {
                 encryptKey:cipher.final('hex'),
-                pubkeyHash:bcrypto.btc.get_outputscript_for_key(pubkey, bcrypto.P2PKH),
-                p2shP2wpkh:bcrypto.btc.get_outputscript_for_key(pubkey, bcrypto.P2SH)
+                pubkeyHash:bcrypto[blockchain].get_outputscript_for_key(pubkey, bcrypto.P2PKH),
+                p2shP2wpkh:bcrypto[blockchain].get_outputscript_for_key(pubkey, bcrypto.P2SH)
             }
         } catch (e) {
             return undefined;
@@ -727,22 +727,25 @@ export class Wallet {
     }
 
     static decodeAddress(address) {
-        let hash = Wallet.decodeBtcAddress(address);
-        if (hash !== undefined) {
-            return hash;
+        let hash = Wallet.decodeBlockchainAddress('btc', address);
+        if (hash === undefined) {
+            hash = Wallet.decodeBlockchainAddress('rcoin', address);
         }
-        return undefined;
+        if (hash === undefined) {
+            hash = Wallet.decodeBlockchainAddress('rcoin', address, 'get_ecoin_chainparams');
+        }
+        return hash;
     }
 
-    static decodeBtcAddress(address) {
+    static decodeBlockchainAddress(blockchain, address, getChainparamsFuncName = 'get_chainparams') {
         try {
-            const mainNetParams = bcrypto.btc.get_chainparams('main');
-            const outputscript = bcrypto.btc.decode_address(address, mainNetParams);
+            const mainNetParams = bcrypto[blockchain][getChainparamsFuncName]('main');
+            const outputscript = bcrypto[blockchain].decode_address(address, mainNetParams);
             return bcrypto.to_hex(outputscript.get_bytes());
         } catch (e) {
             try {
-                const testNetParams = bcrypto.btc.get_chainparams('testnet');
-                const outputscript = bcrypto.btc.decode_address(address, testNetParams);
+                const testNetParams = bcrypto[blockchain][getChainparamsFuncName]('testnet');
+                const outputscript = bcrypto[blockchain].decode_address(address, testNetParams);
                 return bcrypto.to_hex(outputscript.get_bytes());
             } catch (e) {
                 return undefined;
