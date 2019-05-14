@@ -50,3 +50,34 @@ Ky3SdjH53Q8hLNSLMD5LMwm6XQ5FqnrmxbjVLXSk3JJQTuByXFt9 16XnLijjBDUKuAxqQ2uqDkDQBjD
 KwRX5VAfQU3HFQRUZFuoFWVswHeZxtFUnrBBT7cHpHZ5PLqGHi2b 1DRPRjjjHWJJdnpHQCbCLRv2K9DL5wHx5V bc1q3qlrdy63sgppv90mt2n7kyvze94fp420cqgyr9 3JJRvMqNR9dgJqa6JR2GGVrqqv9uYNJYtx
 Kxw2xGCNJvCL1cZzEGEaSVnqPNZtEuG8oXpFxtwG23qfFT1mxy1g 1Fw6LSPBeUd6oARwSh4f8Bqz8PAmckcQbf bc1q50x26tqxnlahd5a988ud662ktdjyu7sun8a0ju 32B4DA6nK1MJ1MSh1Vx7NNQFpDWzuymrdt
 ```
+### 导入eth json
+```shell
+json:
+{
+  "version": 3,
+  "id": "5f14f526-256f-4778-a8a3-a67829cdc23d",
+  "address": "e879024cad6f460dd7a543cbcb8c101ff26090a7",
+  "crypto": {
+    "ciphertext": "1e571c76c4366fcf3e2df0408614cafc1fb44af8faf9565e5263087b601de7bf",
+    "cipherparams": {
+      "iv": "38224a9838b92416b225425dc523c660"
+    },
+    "cipher": "aes-128-ctr",
+    "kdf": "scrypt",
+    "kdfparams": {
+      "dklen": 32,
+      "salt": "3298526f098ac620693943a86fc5e24f3239a6333a66c6a81a42b1b549bddae3",
+      "n": 131072,
+      "r": 8,
+      "p": 1
+    },
+    "mac": "9b595a321b5c42a09c4ae0d70f12638cec26ebc6c60132912898176391833280"
+  }
+}
+密码: Rrjj20150128
+```
+### 导入hd
+```shell
+mnemonic: drum uniform toddler drink marriage position illegal bulk shrimp fresh school pave
+password: 123456
+```

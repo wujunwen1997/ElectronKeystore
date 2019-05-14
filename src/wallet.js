@@ -508,6 +508,42 @@ export class Wallet {
                 event.sender.send('batch-delete-key-result', {data: false, errorMsg: e.message});
             }
         });
+
+        /*
+        导入hd，参数data是
+        {
+          mnemonic:'', // 助记词
+          password:'', // 密码
+        }
+        返回结果result, 成功返回true，如果失败返回false，errorMsg会包含失败原因
+        {
+          data: true,
+          errorMsg: null,
+        }
+         */
+        self.ipcMain.on('import-hd', function (event, data) {
+            try {
+                const select = self.db.prepare('SELECT * FROM hd WHERE mnemonic = ?');
+                const selectInfo = select.get(data.mnemonic);
+                if (selectInfo === undefined) {
+                    const seed = bcrypto.mnemonic_toseed(data.mnemonic, data.password);
+                    let cipher = crypto.createCipheriv('aes-128-cbc', self.aesKey, Buffer.alloc(16, 0));
+                    cipher.update(Buffer.from(seed));
+                    const encryptSeed = cipher.final('hex');
+                    const insert = self.db.prepare('INSERT INTO hd VALUES (?, ?, ?)');
+                    const insertInfo = insert.run(data.mnemonic, encryptSeed, new Date().getTime());
+                    if (insertInfo.changes === 1) {
+                        event.sender.send('import-hd-result', {data: true, errorMsg: null});
+                    } else {
+                        event.sender.send('import-hd-result', {data: false, errorMsg: '助记词存储失败'});
+                    }
+                } else {
+                    event.sender.send('import-hd-result', {data: false, errorMsg: '助记词已存在'});
+                }
+            } catch (e) {
+                event.sender.send('import-hd-result', {data: false, errorMsg: e.message});
+            }
+        });
     }
 
     getWalletDir() {
