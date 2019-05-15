@@ -18,7 +18,7 @@ class Sider extends Component {
     const {addressManagement, dispatch, location} = this.props;
     const {wifText, jsonText, password} = addressManagement;
     let isWif = pathMatchRegexp('/addressManagement/ImportAddress/:id', location.pathname)[1] === 'wif'
-    const ReadFile = (event, arg) => {
+    const ReadFile = (arg) => {
       const success = () => {
         dispatch({
           type: 'addressManagement/setModel',
@@ -26,10 +26,9 @@ class Sider extends Component {
         })
       };
       errorMsg(arg, success);
-      ipcRenderer.removeListener("read-file-result", ReadFile)
     };
     //  导入
-    const importWifEvent = (event, arg) => {
+    const importWifEvent = (arg) => {
       const success = () => {
         const {success, fail, duplicate} = arg.data;
         let str = []
@@ -42,14 +41,12 @@ class Sider extends Component {
         message.error('导入WIF格式私钥失败')
       };
       errorMsg(arg, success, fail);
-      ipcRenderer.removeListener("import-wif-result", importWifEvent)
     };
-    const importJsonEvent = (event, arg) => {
+    const importJsonEvent = (arg) => {
       const success = () => {
         message.success('私钥导入成功！')
       };
       errorMsg(arg, success,);
-      ipcRenderer.removeListener("import-eth-json-result", importJsonEvent)
     }
     const onImport = () => {
       if (isWif) {
@@ -57,15 +54,15 @@ class Sider extends Component {
           message.warning('请输入地址')
           return
         }
-        ipcRenderer.send('import-wif', wifText);
-        ipcRenderer.on("import-wif-result", importWifEvent);
+        const data = ipcRenderer.sendSync('import-wif', wifText);
+        importWifEvent(data);
       } else {
         if (!password || !jsonText) {
           message.warning('请确认输入JSON私钥和解锁密码')
           return
         }
-        ipcRenderer.send('import-eth-json', {json: jsonText, password: password});
-        ipcRenderer.on("import-eth-json-result", importJsonEvent);
+        const data = ipcRenderer.sendSync('import-eth-json', {json: jsonText, password: password});
+        importJsonEvent(data);
       }
     };
     const changeTextAres = (e) => {
@@ -88,8 +85,8 @@ class Sider extends Component {
       dialog.showOpenDialog({title: '链付：私钥文件导入', filters: [{extensions: ['*']}]}, function (filePaths) {
         if (filePaths) {
           if (filePaths.length > 0) {
-            ipcRenderer.send('read-file', filePaths[0])
-            ipcRenderer.on("read-file-result", ReadFile);
+            const data = ipcRenderer.sendSync('read-file', filePaths[0])
+            ReadFile(data);
           } else {
             message.warning('选择文件为空！');
           }

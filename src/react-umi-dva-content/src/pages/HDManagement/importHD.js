@@ -13,16 +13,15 @@ class App extends Component {
     e.preventDefault();
     this.props.form.validateFields((err, values) => {
       if (!err) {
-        ipcRenderer.send('import-hd', values)
-        const getDelKeysResult = (event, arg) => {
+        const getDelKeysResult = (arg) => {
           const success = () => {
             message.success('导入成功')
             router.push('/HDManagement')
           }
           errorMsg(arg, success)
-          ipcRenderer.removeListener("import-hd-result", getDelKeysResult)
         }
-        ipcRenderer.on("import-hd-result", getDelKeysResult);
+        const data = ipcRenderer.sendSync('import-hd', values)
+        getDelKeysResult(data)
       }
     });
   }

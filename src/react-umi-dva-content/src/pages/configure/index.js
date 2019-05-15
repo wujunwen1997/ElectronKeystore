@@ -14,26 +14,24 @@ class ConfigureComponent extends Component {
     this.props.form.validateFields(
       (err) => {
         if (!err) {
-          ipcRenderer.send("set-gateway", this.props.form.getFieldsValue())
-          ipcRenderer.on("set-gateway-result", this.setGatewayResult);
+          const data = ipcRenderer.sendSync("set-gateway", this.props.form.getFieldsValue())
+          this.setGatewayResult(data)
         }
       },
     );
   }
   layout = () => {
-    ipcRenderer.send('logout');
-    ipcRenderer.on("logout-result", this.sendLayout)
+    const data = ipcRenderer.sendSync('logout');
+    this.sendLayout(data);
   }
-  sendLayout = (event, arg) => {
+  sendLayout = (arg) => {
     const success = () => {
       router.push('/configure')
     }
     errorMsg(arg, success)
-    ipcRenderer.removeListener("logout-result", this.sendLayout)
   }
-  setGatewayResult = (event, arg) => {
+  setGatewayResult = (arg) => {
     errorMsg(arg, () => {message.success('保存成功')})
-    ipcRenderer.removeListener("set-gateway-result", this.setGatewayResult)
   }
   render() {
     const {userModel} = this.props

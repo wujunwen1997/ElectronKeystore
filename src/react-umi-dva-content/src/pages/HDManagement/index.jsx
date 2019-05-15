@@ -32,16 +32,15 @@ class AddressManagementComponent extends Component {
         okType: 'danger',
         cancelText: '取消',
         onOk() {
-          ipcRenderer.send('delete-hd', key)
-          const getDelKeyResult = (event, arg) => {
+          const data = ipcRenderer.sendSync('delete-hd', key)
+          const getDelKeyResult = (arg) => {
             const success = () => {
               message.success('删除成功')
               onPageChange(1)
             }
             errorMsg(arg, success)
-            ipcRenderer.removeListener("delete-hd-result", getDelKeyResult)
           }
-          ipcRenderer.on("delete-hd-result", getDelKeyResult);
+         getDelKeyResult(data)
         },
       });
     }
@@ -83,16 +82,15 @@ class AddressManagementComponent extends Component {
       if (selectedRowKeys.length === 0) {
         message.warning('至少需要选中一个HD')
       } else {
-        ipcRenderer.send('batch-delete-hd', selectedRowKeys)
-        const getDelKeysResult = (event, arg) => {
+        const data = ipcRenderer.sendSync('batch-delete-hd', selectedRowKeys)
+        const getDelKeysResult = (arg) => {
           const success = () => {
             message.success('删除成功')
             onPageChange(1)
           }
           errorMsg(arg, success)
-          ipcRenderer.removeListener("batch-delete-hd-result", getDelKeysResult)
         }
-        ipcRenderer.on("batch-delete-hd-result", getDelKeysResult);
+        getDelKeysResult(data);
       }
     }
     const getDelBtn = () => {

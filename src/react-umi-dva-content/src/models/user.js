@@ -30,9 +30,8 @@ export default {
           }
         });
         if (needInfo) {
-          ipcRenderer.send("get-wallet-info");
-          const getWallets = (event, arg) => {
-            if (arg.data && arg.data !== '{}') {
+          const getWallets = (arg) => {
+            if (arg && arg.data && arg.data !== '{}') {
               if (arg.data && arg.data.walletName && arg.data.walletName !== '' && typeof(arg.data.walletName) !== 'undefined') {
                 dispatch({ type: 'setModel', payload: {walletName: arg.data.walletName, walletPath: arg.data.walletPath}})
               } else {
@@ -42,25 +41,24 @@ export default {
               dispatch({ type: 'setModel', payload: {walletName: '', walletPath: ''}});
               router.push('/');
             }
-            ipcRenderer.removeListener("get-wallet-info-result", getWallets)
           };
-          ipcRenderer.on("get-wallet-info-result", getWallets);
+          const data = ipcRenderer.sendSync("get-wallet-info");
+          getWallets(data)
         }
       })
     },
     setupConfigureGateway({ dispatch, history }) {
       return history.listen(({ pathname }) => {
         if (pathMatchRegexp('/configure', pathname) || pathMatchRegexp('/register/createWallet', pathname)) {
-          ipcRenderer.send("get-gateway");
-          const getGatewayResult = (event, arg) => {
+          const getGatewayResult = (arg) => {
             if (arg.data && arg.data !== '{}') {
               dispatch({ type: 'setModel', payload: {aesKey: arg.data.aesKey, aesToken: arg.data.aesToken, url: arg.data.url}})
             } else {
               dispatch({ type: 'setModel', payload: {aesKey: '', aesToken: '', url: ''}})
             }
-            ipcRenderer.removeListener("get-gateway-result", getGatewayResult)
           }
-          ipcRenderer.on("get-gateway-result", getGatewayResult);
+          const data = ipcRenderer.sendSync("get-gateway");
+          getGatewayResult(data)
         }
       })
     },

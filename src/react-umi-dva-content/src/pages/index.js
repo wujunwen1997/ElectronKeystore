@@ -28,7 +28,7 @@ class Login extends Component {
       }
     });
   }
-  getWallets = (event, arg) => {
+  getWallets = (arg) => {
     const success = () => {
       if (arg.data && arg.data.length > 0) {
         this.setState({walletsArr: arg.data})
@@ -41,11 +41,10 @@ class Login extends Component {
       router.push('/welcome');
     }
     errorMsg(arg, success, fail)
-    ipcRenderer.removeListener("get-user-wallet-result", this.getWallets)
   }
   componentDidMount () {
-    ipcRenderer.send("get-user-wallet");
-    ipcRenderer.on("get-user-wallet-result", this.getWallets);
+    const data = ipcRenderer.sendSync("get-user-wallet");
+    this.getWallets(data)
   }
   render() {
     const { getFieldDecorator } = this.props.form

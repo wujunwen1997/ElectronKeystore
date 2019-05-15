@@ -20,16 +20,15 @@ class RouterComponent extends Component {
     message.success('导入成功，请登录')
     router.push('/');
   }
-  importKeystore = (event, arg) => {
+  importKeystore = (arg) => {
     errorMsg(arg, this.importKeystoreSuccess)
-    ipcRenderer.removeListener("import-wallet-result", this.importKeystore)
   }
   handleSubmit = (e) => {
     e.preventDefault();
     this.props.form.validateFields((err, values) => {
       if (!err) {
-        ipcRenderer.send("import-wallet", values);
-        ipcRenderer.on("import-wallet-result", this.importKeystore)
+        const data = ipcRenderer.sendSync("import-wallet", values);
+        this.importKeystore(data)
       }
     });
   }

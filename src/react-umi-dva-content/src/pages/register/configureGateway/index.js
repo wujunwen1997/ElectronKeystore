@@ -13,18 +13,17 @@ class RouterComponent extends Component {
     e.preventDefault();
     this.props.form.validateFields((err, values) => {
       if (!err) {
-        ipcRenderer.send("set-gateway", values)
-        ipcRenderer.on("set-gateway-result", this.setGatewayResult);
+        const data = ipcRenderer.sendSync("set-gateway", values)
+        this.setGatewayResult(data);
       }
     });
   }
-  setGatewayResult = (event, arg) => {
+  setGatewayResult = (arg) => {
     const success = () => {
       message.success('配置成功')
       router.push('/')
     }
     errorMsg(arg, success)
-    ipcRenderer.removeListener("set-gateway-result", this.setGatewayResult)
   }
   pass = () => {
     router.push('/')

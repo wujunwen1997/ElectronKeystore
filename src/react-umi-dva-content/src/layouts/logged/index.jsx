@@ -11,7 +11,7 @@ class logged extends Component {
   state = {
     walletName: null
   }
-  getWalletInfoResult = (event, arg) => {
+  getWalletInfoResult = (arg) => {
     const success = () => {
       this.setState({walletName: arg.data.walletName})
     }
@@ -19,11 +19,10 @@ class logged extends Component {
       this.setState({walletName: null})
     }
     errorMsg(arg, success, fail)
-    ipcRenderer.removeListener("get-wallet-info-result", this.getWalletInfoResult);
   }
   componentDidMount () {
-    ipcRenderer.send("get-wallet-info")
-    ipcRenderer.on("get-wallet-info-result", this.getWalletInfoResult);
+    const data = ipcRenderer.sendSync("get-wallet-info")
+    this.getWalletInfoResult(data);
   }
   render() {
     const { children, userModel, dispatch } = this.props;

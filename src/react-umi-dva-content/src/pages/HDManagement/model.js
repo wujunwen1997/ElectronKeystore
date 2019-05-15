@@ -22,20 +22,19 @@ export default {
     setupHome({ dispatch, history }) {
       return history.listen(({ pathname, query }) => {
         if (pathMatchRegexp('/HDManagement', pathname)) {
-          ipcRenderer.send('query-hd', {
+          const data = ipcRenderer.sendSync('query-hd', {
             pageNum: query && query.pageNum ? query.pageNum : 0, // 从0开始
             pageSize: 10
           });
-          const getQueryGey = (event, arg) => {
+          const getQueryGey = (arg) => {
             const success = () => {
               const {elements, pageNum, totalElements} = arg.data
               let obj = {pageNum: parseInt(pageNum) + 1}
               dispatch({ type: 'setModel', payload: {elements, totalElements, obj}})
             }
             errorMsg(arg, success)
-            ipcRenderer.removeListener("query-hd-result", getQueryGey)
           }
-          ipcRenderer.on("query-hd-result", getQueryGey);
+          getQueryGey(data);
         }
       })
     },

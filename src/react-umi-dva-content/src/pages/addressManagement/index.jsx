@@ -71,16 +71,15 @@ class AddressManagementComponent extends Component {
         okType: 'danger',
         cancelText: '取消',
         onOk() {
-          ipcRenderer.send('delete-key', key)
-          const getDelKeyResult = (event, arg) => {
+          const data = ipcRenderer.sendSync('delete-key', key)
+          const getDelKeyResult = (arg) => {
             const success = () => {
               message.success('删除成功')
               onPageChange(1)
             }
             errorMsg(arg, success)
-            ipcRenderer.removeListener("delete-key-result", getDelKeyResult)
           }
-          ipcRenderer.on("delete-key-result", getDelKeyResult);
+          getDelKeyResult(data);
         },
       });
     }
@@ -88,16 +87,15 @@ class AddressManagementComponent extends Component {
       if (selectedRowKeys.length === 0) {
         message.warning('至少需要选中一个地址')
       } else {
-        ipcRenderer.send('batch-delete-key', selectedRowKeys)
-        const getDelKeysResult = (event, arg) => {
+        const data = ipcRenderer.sendSync('batch-delete-key', selectedRowKeys)
+        const getDelKeysResult = (arg) => {
           const success = () => {
             message.success('删除成功')
             onPageChange(1)
           }
           errorMsg(arg, success)
-          ipcRenderer.removeListener("batch-delete-key-result", getDelKeysResult)
         }
-        ipcRenderer.on("batch-delete-key-result", getDelKeysResult);
+        getDelKeysResult(data);
       }
     }
     const getDelBtn = () => {

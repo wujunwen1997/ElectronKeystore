@@ -15,7 +15,7 @@ class RouterComponent extends Component {
     loading: false,
     haveAes: false
   }
-  createWalletResult = (event, arg) => {
+  createWalletResult = (arg) => {
     this.setState({loading: false})
     const createWalletResultSuccess = () => {
       message.success('创建成功')
@@ -25,15 +25,9 @@ class RouterComponent extends Component {
     }
     errorMsg(arg, createWalletResultSuccess)
   }
-  componentDidMount () {
-    ipcRenderer.on("create-wallet-result", this.createWalletResult)
-  }
-  componentWillUnmount () {
-    ipcRenderer.removeListener("create-wallet-result", this.createWalletResult)
-  }
   render() {
     const { form, userModel } = this.props;
-    const {aesKey, aesToken, url} = userModel
+    const {aesKey, aesToken, url} = userModel;
     const { getFieldDecorator } = form;
     const surePassword = (rule, value, callback) => {
       this.props.form.getFieldsValue().password === value ? callback() : callback('两次输入密码不同')
@@ -44,7 +38,8 @@ class RouterComponent extends Component {
         if (!err) {
           delete values.surePassword
           this.setState({loading: true})
-          ipcRenderer.send("create-wallet", values);
+          const data = ipcRenderer.sendSync("create-wallet", values);
+          this.createWalletResult(data)
         }
       });
     }

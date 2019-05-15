@@ -27,23 +27,22 @@ export default {
       return history.listen(({ pathname, query }) => {
         if (pathMatchRegexp('/addressManagement', pathname)) {
           if (query && query.pageNum || Object.keys(query).length === 0) {
-            ipcRenderer.send('query-key', {
+            const data = ipcRenderer.sendSync('query-key', {
               pageNum: query && query.pageNum ? query.pageNum : 0, // 从0开始
               pageSize: 10
             });
-            const getQueryGey = (event, arg) => {
+            const getQueryGey = (arg) => {
               const success = () => {
                 const {elements, pageNum, totalElements} = arg.data
                 let obj = {pageNum: parseInt(pageNum) + 1}
                 dispatch({ type: 'setModel', payload: {elements, totalElements, obj}})
               }
               errorMsg(arg, success)
-              ipcRenderer.removeListener("query-key-result", getQueryGey)
             }
-            ipcRenderer.on("query-key-result", getQueryGey);
+            getQueryGey(data);
           } else if(query && query.data) {
-            ipcRenderer.send('search-key', query.data);
-            const getSearchGey = (event, arg) => {
+            const data = ipcRenderer.sendSync('search-key', query.data);
+            const getSearchGey = (arg) => {
               const success = () => {
                 if (arg.data.find) {
                   const {info} = arg.data
@@ -53,9 +52,8 @@ export default {
                 }
               }
               errorMsg(arg, success)
-              ipcRenderer.removeListener("search-key-result", getSearchGey)
             }
-            ipcRenderer.on("search-key-result", getSearchGey);
+            getSearchGey(data);
           }
         }
         if (pathMatchRegexp('/addressManagement/ImportAddress/:id', pathname)) {
