@@ -39,13 +39,13 @@ export class Wallet {
                     const stmt = self.db.prepare('INSERT INTO password VALUES (?, ?)');
                     const info = stmt.run(hash.toString('hex'), salt);
                     if (info.changes === 1) {
-                        event.sender.send('create-wallet-result', {data: true, errorMsg: null});
+                        event.returnValue = {data: true, errorMsg: null};
                     } else {
-                        event.sender.send('create-wallet-result', {data: false, errorMsg: '密码保存失败'});
+                        event.returnValue = {data: false, errorMsg: '密码保存失败'};
                     }
                 });
             } catch (e) {
-                event.sender.send('create-wallet-result', {data: false, errorMsg: e.message});
+                event.returnValue = {data: false, errorMsg: e.message};
             }
         });
 
@@ -67,23 +67,23 @@ export class Wallet {
                 let db = new Database(data.walletPath);
                 const result = Wallet.checkPassword(db, data.password);
                 if (result.data !== true) {
-                    event.sender.send('import-wallet-result', {data: false, errorMsg: result.errorMsg});
+                    event.returnValue = {data: false, errorMsg: result.errorMsg};
                     return;
                 }
                 const walletPath = self.getWalletPath(data.walletName);
                 if (fs.existsSync(walletPath)) {
-                    event.sender.send('import-wallet-result', {data: false, errorMsg: '钱包文件已存在'});
+                    event.returnValue = {data: false, errorMsg: '钱包文件已存在'};
                     return;
                 }
                 fs.copyFile(data.walletPath, walletPath, (err) => {
                     if (err) {
-                        event.sender.send('import-wallet-result', {data: false, errorMsg: err.message});
+                        event.returnValue = {data: false, errorMsg: err.message};
                         return;
                     }
-                    event.sender.send('import-wallet-result', {data: true, errorMsg: null});
+                    event.returnValue = {data: true, errorMsg: null};
                 });
             } catch (e) {
-                event.sender.send('create-wallet-result', {data: false, errorMsg: e.message});
+                event.returnValue = {data: false, errorMsg: e.message};
             }
         });
 
@@ -111,9 +111,9 @@ export class Wallet {
                         walletPath:self.getWalletPath(data.walletName)
                     };
                 }
-                event.sender.send('login-result', result);
+                event.returnValue = result;
             } catch (e) {
-                event.sender.send('login-result', {data: false, errorMsg: e.message});
+                event.returnValue = {data: false, errorMsg: e.message};
             }
         });
 
@@ -127,7 +127,7 @@ export class Wallet {
          */
         self.ipcMain.on('logout', function (event) {
             self.closeWallet();
-            event.sender.send('logout-result', {data: true, errorMsg: null});
+            event.returnValue = {data: true, errorMsg: null};
         });
 
         /*
@@ -143,7 +143,7 @@ export class Wallet {
             const filenames = glob.sync(path.join(walletDir, '*.wallet'));
             let namesWithoutExtension = [];
             filenames.forEach((filename) => { namesWithoutExtension.push(path.parse(filename).name); });
-            event.sender.send('get-user-wallet-result', {data: namesWithoutExtension, errorMsg: null});
+            event.returnValue = {data: namesWithoutExtension, errorMsg: null};
         });
 
         /*
@@ -159,9 +159,9 @@ export class Wallet {
          */
         self.ipcMain.on('get-wallet-info', function (event) {
             if (self.walletInfo === undefined) {
-                event.sender.send('get-wallet-info-result', {data: null, errorMsg: '尚未登录钱包'});
+                event.returnValue = {data: null, errorMsg: '尚未登录钱包'};
             } else {
-                event.sender.send('get-wallet-info-result', {data: self.walletInfo, errorMsg: null});
+                event.returnValue = {data: self.walletInfo, errorMsg: null};
             }
         });
 
@@ -179,7 +179,7 @@ export class Wallet {
         self.ipcMain.on('encrypt-data', function (event, data) {
             try {
                 if (self.gateway.getGateway() === undefined) {
-                    event.sender.send('encrypt-data-result', {data: null, errorMsg: '网关配置不存在'});
+                    event.returnValue = {data: null, errorMsg: '网关配置不存在'};
                     return;
                 }
                 let cipher = crypto.createCipheriv('aes-128-cbc', Buffer.from(self.gateway.getGateway().aesKey, 'base64'), Buffer.alloc(16, 0));
@@ -188,9 +188,9 @@ export class Wallet {
                 let body = self.gateway.getGateway().aesToken + encrypt;
                 let sha1 = crypto.createHash('sha1');
                 let sig = sha1.update(body).digest('hex');
-                event.sender.send('encrypt-data-result', {data: {body, sig}, errorMsg: null});
+                event.returnValue = {data: {body, sig}, errorMsg: null};
             } catch (e) {
-                event.sender.send('encrypt-data-result', {data: null, errorMsg: e.message});
+                event.returnValue = {data: null, errorMsg: e.message};
             }
         });
 
@@ -209,22 +209,22 @@ export class Wallet {
         self.ipcMain.on('decrypt-data', function (event, data) {
             try {
                 if (self.gateway.getGateway() === undefined) {
-                    event.sender.send('decrypt-data-result', {data: null, errorMsg: '网关配置不存在'});
+                    event.returnValue = {data: null, errorMsg: '网关配置不存在'};
                     return;
                 }
                 let sha1 = crypto.createHash('sha1');
                 let sig = sha1.update(data.body).digest('hex');
                 if (sig !== data.sig) {
-                    event.sender.send('decrypt-data-result', {data: null, errorMsg: '签名校验失败'});
+                    event.returnValue = {data: null, errorMsg: '签名校验失败'};
                     return;
                 }
                 let encrypt = data.body.substring(self.gateway.getGateway().aesToken.length);
                 let decipher = crypto.createDecipheriv('aes-128-cbc', Buffer.from(self.gateway.getGateway().aesKey, 'base64'), Buffer.alloc(16, 0));
                 let decrypt = decipher.update(encrypt, 'base64', 'utf8');
                 decrypt += decipher.final('utf8');
-                event.sender.send('decrypt-data-result', {data: JSON.parse(decrypt), errorMsg: null});
+                event.returnValue = {data: JSON.parse(decrypt), errorMsg: null};
             } catch (e) {
-                event.sender.send('decrypt-data-result', {data: null, errorMsg: e.message});
+                event.returnValue = {data: null, errorMsg: e.message};
             }
         });
 
@@ -239,9 +239,9 @@ export class Wallet {
         self.ipcMain.on('read-file', function (event, data) {
             try {
                 const fileData = fs.readFileSync(data, 'utf8');
-                event.sender.send('read-file-result', {data: fileData, errorMsg: null});
+                event.returnValue = {data: fileData, errorMsg: null};
             } catch (e) {
-                event.sender.send('read-file-result', {data: null, errorMsg: e.message});
+                event.returnValue = {data: null, errorMsg: e.message};
             }
         });
 
@@ -276,51 +276,9 @@ export class Wallet {
                         duplicate += 1
                     }
                 });
-                event.sender.send('import-wif-result', {data: {success, fail, duplicate}, errorMsg: null});
+                event.returnValue = {data: {success, fail, duplicate}, errorMsg: null};
             } catch (e) {
-                event.sender.send('import-wif-result', {data: null, errorMsg: e.message});
-            }
-        });
-
-        /*
-        从文件导入wif，参数data是file path
-        返回结果result, 成功返回导入数据，如果导入出现异常则返回异常原因
-        {
-          data: {
-            success:1,
-            fail:0,
-            duplicate:0
-          },
-          errorMsg: null,
-        }
-         */
-        self.ipcMain.on('import-wif-from-file', function (event, data) {
-            try {
-                const lineReader = readline.createInterface({
-                    input: fs.createReadStream(data)
-                });
-                let success = 0;
-                let fail = 0;
-                let duplicate = 0;
-                lineReader.on('line', function (wif) {
-                    wif = wif.trim();
-                    if (wif === "") {
-                        return;
-                    }
-                    let importResult = self.importWif(wif);
-                    if (importResult === -1) {
-                        fail += 1;
-                    } else if (importResult === 1){
-                        success += 1;
-                    } else if (importResult === 0){
-                        duplicate += 1
-                    }
-                });
-                lineReader.on('close', function () {
-                    event.sender.send('import-wif-from-file-result', {data: {success, fail, duplicate}, errorMsg: null});
-                });
-            } catch (e) {
-                event.sender.send('import-wif-from-file-result', {data: null, errorMsg: e.message});
+                event.returnValue = {data: null, errorMsg: e.message};
             }
         });
 
@@ -338,30 +296,9 @@ export class Wallet {
          */
         self.ipcMain.on('import-eth-json', function (event, data) {
             try {
-                event.sender.send('import-eth-json-result', self.importEthJson(data.json, data.password));
+                event.returnValue = self.importEthJson(data.json, data.password);
             } catch (e) {
-                event.sender.send('import-eth-json-result', {data: false, errorMsg: e.message});
-            }
-        });
-
-        /*
-        从文件导入eth json，参数data是
-        {
-          jsonFilePath:'', // json文件路径
-          password:''
-        }
-        返回结果result, 成功返回true，如果导入出现异常则返回异常原因
-        {
-          data: true,
-          errorMsg: null,
-        }
-         */
-        self.ipcMain.on('import-eth-json-from-file', function (event, data) {
-            try {
-                const json = fs.readFileSync(data.jsonFilePath, 'utf8');
-                event.sender.send('import-eth-json-from-file-result', self.importEthJson(json, data.password));
-            } catch (e) {
-                event.sender.send('import-eth-json-from-file-result', {data: false, errorMsg: e.message});
+                event.returnValue = {data: false, errorMsg: e.message};
             }
         });
 
@@ -415,28 +352,28 @@ export class Wallet {
             try {
                 const hash = Wallet.decodeAddress(data);
                 if (hash === undefined) {
-                    event.sender.send('search-key-result', {data: null, errorMsg: '地址格式不正确'});
+                    event.returnValue = {data: null, errorMsg: '地址格式不正确'};
                     return;
                 }
                 const stmt = self.db.prepare('SELECT * FROM key WHERE pubkey_hash = ? OR p2sh_p2wpkh = ?');
                 const info = stmt.get(hash, hash);
                 if (info === undefined) {
-                    event.sender.send('search-key-result', {data: {find: false}, errorMsg: null});
+                    event.returnValue = {data: {find: false}, errorMsg: null};
                 } else {
                     const date = new Date(parseInt(info.created_at));
-                    event.sender.send('search-key-result', {
+                    event.returnValue = {
                         data: {
                             find: true,
                             info: {
                                 pubkeyHash: info.pubkey_hash,
                                 createdAt: dateFormat(date, "yyyy-mm-d HH:MM:ss")
                             }
-                         },
+                        },
                         errorMsg: null
-                    });
+                    };
                 }
             } catch (e) {
-                event.sender.send('search-key-result', {data: null, errorMsg: e.message});
+                event.returnValue = {data: null, errorMsg: e.message};
             }
         });
 
@@ -453,12 +390,12 @@ export class Wallet {
                 const update = self.db.prepare('DELETE FROM key WHERE pubkey_hash = ?');
                 const updateInfo = update.run(data);
                 if (updateInfo.changes === 1) {
-                    event.sender.send('delete-key-result', {data: true, errorMsg: null});
+                    event.returnValue = {data: true, errorMsg: null};
                 } else {
-                    event.sender.send('delete-key-result', {data: false, errorMsg: 'key不存在'});
+                    event.returnValue = {data: false, errorMsg: 'key不存在'};
                 }
             } catch (e) {
-                event.sender.send('delete-key-result', {data: false, errorMsg: e.message});
+                event.returnValue = {data: false, errorMsg: e.message};
             }
         });
 
@@ -477,12 +414,12 @@ export class Wallet {
                 }).join(',') + ')');
                 const updateInfo = update.run();
                 if (updateInfo.changes >= 1) {
-                    event.sender.send('batch-delete-key-result', {data: true, errorMsg: null});
+                    event.returnValue = {data: true, errorMsg: null};
                 } else {
-                    event.sender.send('batch-delete-key-result', {data: false, errorMsg: '删除失败'});
+                    event.returnValue = {data: false, errorMsg: '删除失败'};
                 }
             } catch (e) {
-                event.sender.send('batch-delete-key-result', {data: false, errorMsg: e.message});
+                event.returnValue = {data: false, errorMsg: e.message};
             }
         });
 
@@ -510,15 +447,15 @@ export class Wallet {
                     const insert = self.db.prepare('INSERT INTO hd VALUES (?, ?, ?)');
                     const insertInfo = insert.run(data.mnemonic, encryptSeed, new Date().getTime());
                     if (insertInfo.changes === 1) {
-                        event.sender.send('import-hd-result', {data: true, errorMsg: null});
+                        event.returnValue = {data: true, errorMsg: null};
                     } else {
-                        event.sender.send('import-hd-result', {data: false, errorMsg: '助记词存储失败'});
+                        event.returnValue = {data: false, errorMsg: '助记词存储失败'};
                     }
                 } else {
-                    event.sender.send('import-hd-result', {data: false, errorMsg: '助记词已存在'});
+                    event.returnValue = {data: false, errorMsg: '助记词已存在'};
                 }
             } catch (e) {
-                event.sender.send('import-hd-result', {data: false, errorMsg: e.message});
+                event.returnValue = {data: false, errorMsg: e.message};
             }
         });
 
@@ -567,12 +504,12 @@ export class Wallet {
                 const update = self.db.prepare('DELETE FROM hd WHERE mnemonic = ?');
                 const updateInfo = update.run(data);
                 if (updateInfo.changes === 1) {
-                    event.sender.send('delete-hd-result', {data: true, errorMsg: null});
+                    event.returnValue = {data: true, errorMsg: null};
                 } else {
-                    event.sender.send('delete-hd-result', {data: false, errorMsg: '助记词不存在'});
+                    event.returnValue = {data: false, errorMsg: '助记词不存在'};
                 }
             } catch (e) {
-                event.sender.send('delete-hd-result', {data: false, errorMsg: e.message});
+                event.returnValue = {data: false, errorMsg: e.message};
             }
         });
 
@@ -591,12 +528,32 @@ export class Wallet {
                 }).join(',') + ')');
                 const updateInfo = update.run();
                 if (updateInfo.changes >= 1) {
-                    event.sender.send('batch-delete-hd-result', {data: true, errorMsg: null});
+                    event.returnValue = {data: true, errorMsg: null};
                 } else {
-                    event.sender.send('batch-delete-hd-result', {data: false, errorMsg: '删除失败'});
+                    event.returnValue = {data: false, errorMsg: '删除失败'};
                 }
             } catch (e) {
-                event.sender.send('batch-delete-hd-result', {data: false, errorMsg: e.message});
+                event.returnValue = {data: false, errorMsg: e.message};
+            }
+        });
+
+        /*
+        交易签名，参数data是交易详情
+        {
+          rawTx:'',
+          inputs:[...]
+        }
+        返回结果result, 成功返回签名后的rawTx，如果失败则data为null，errorMsg会包含失败原因
+        {
+          data: 'signedRawTx',
+          errorMsg: null,
+        }
+         */
+        self.ipcMain.on('sign-tx', function (event, data) {
+            try {
+                event.returnValue = {data: null, errorMsg:'接口尚未实现'};
+            } catch (e) {
+                event.returnValue = {data: null, errorMsg: e.message};
             }
         });
     }
@@ -770,7 +727,7 @@ export class Wallet {
                 total = totalInfo.count;
             }
             if (total === 0) {
-                event.sender.send(`query-${tableName}-result`, {
+                event.returnValue = {
                     data: {
                         totalElements:0,
                         totalPage:0,
@@ -778,12 +735,12 @@ export class Wallet {
                         elements:[]
                     },
                     errorMsg: null
-                });
+                };
                 return;
             }
             const totalPage = Math.ceil(total/data.pageSize);
             if (data.pageNum > totalPage - 1) {
-                event.sender.send(`query-${tableName}-result`, {
+                event.returnValue = {
                     data: {
                         totalElements:total,
                         totalPage:totalPage,
@@ -791,7 +748,7 @@ export class Wallet {
                         elements:[]
                     },
                     errorMsg: null
-                });
+                };
                 return;
             }
             const offset = data.pageNum * data.pageSize;
@@ -801,7 +758,7 @@ export class Wallet {
             for (let i = 0; i < selectInfo.length; i++) {
                 elements.push(buildElementFunc(selectInfo[i]));
             }
-            event.sender.send(`query-${tableName}-result`, {
+            event.returnValue = {
                 data: {
                     totalElements:total,
                     totalPage:totalPage,
@@ -809,9 +766,9 @@ export class Wallet {
                     elements:elements
                 },
                 errorMsg: null
-            });
+            };
         } catch (e) {
-            event.sender.send(`query-${tableName}-result`, {data: null, errorMsg: e.message});
+            event.returnValue = {data: null, errorMsg: e.message};
         }
     }
 }

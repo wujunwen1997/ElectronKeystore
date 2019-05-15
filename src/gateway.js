@@ -29,12 +29,12 @@ export class Gateway {
         self.ipcMain.on('get-gateway', function (event) {
             try {
                 if (self.gateway !== undefined) {
-                    event.sender.send('get-gateway-result', {data: self.gateway, errorMsg: null});
+                    event.returnValue = {data: self.gateway, errorMsg: null};
                 } else {
-                    event.sender.send('get-gateway-result', {data: null, errorMsg: '网关配置不存在'});
+                    event.returnValue = {data: null, errorMsg: '网关配置不存在'};
                 }
             } catch (e) {
-                event.sender.send('get-gateway-result', {data: null, errorMsg: e.message});
+                event.returnValue = {data: null, errorMsg: e.message};
             }
         });
 
@@ -60,7 +60,7 @@ export class Gateway {
                     const insertInfo = insert.run(data.url, data.aesKey, data.aesToken);
                     if (insertInfo.changes === 1) {
                         self.gateway = data;
-                        event.sender.send('set-gateway-result', {data: true, errorMsg: null});
+                        event.returnValue = {data: true, errorMsg: null};
                         return;
                     }
                 } else {
@@ -68,13 +68,13 @@ export class Gateway {
                     const updateInfo = update.run(data.url, data.aesKey, data.aesToken);
                     if (updateInfo.changes === 1) {
                         self.gateway = data;
-                        event.sender.send('set-gateway-result', {data: true, errorMsg: null});
+                        event.returnValue = {data: true, errorMsg: null};
                         return;
                     }
                 }
-                event.sender.send('set-gateway-result', {data: false, errorMsg: '设置网关失败'});
+                event.returnValue = {data: false, errorMsg: '设置网关失败'};
             } catch (e) {
-                event.sender.send('set-gateway-result', {data: false, errorMsg: e.message});
+                event.returnValue = {data: false, errorMsg: e.message};
             }
         });
     }
