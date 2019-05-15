@@ -1,5 +1,5 @@
 import React, {Component, Fragment} from 'react'
-import {Table, Button, Pagination} from 'antd';
+import {Table, Button, Pagination, message} from 'antd';
 import {connect} from "dva";
 import s from './index.scss';
 import router from "umi/router";
@@ -14,7 +14,7 @@ class HomeComponent extends Component {
     const {home, loading, location, dispatch} = this.props;
     const { query, pathname } = location;
     let thisLoad = loading.effects['home/detailList'];
-    const {data} = home;
+    const {data, selectedRowKeys} = home;
     const {total, list} = data;
     const columns = [
       {
@@ -62,15 +62,23 @@ class HomeComponent extends Component {
       }
     ];
     const rowSelection = {
-      onChange: (selectedRowKeys, ) => {
+      onChange: (selectedRowKeys, selectedRows) => {
+        let arr = []
+        selectedRows.forEach(u => {
+          arr.push({id: u.id, symbol: u.symbol})
+        })
         dispatch({
           type: 'home/querySuccess',
-          payload: {selectedRowKeys: selectedRowKeys}
+          payload: {selectedRowKeys: arr}
         })
       }
     };
     const moreAutograph = () => {
+      if (selectedRowKeys && selectedRowKeys.length > 0) {
 
+      } else {
+        message.warning('请至少选择1个交易')
+      }
     }
     const onPageChange = (page) => {
       router.push({

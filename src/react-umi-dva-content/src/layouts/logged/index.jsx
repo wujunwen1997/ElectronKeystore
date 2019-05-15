@@ -1,5 +1,5 @@
 import React, {Component} from 'react'
-import {Icon, Menu} from 'antd'
+import {Menu} from 'antd'
 import s from './index.scss'
 import Link from "umi/link"
 import {ipcRenderer} from '@/config/Electron.js'

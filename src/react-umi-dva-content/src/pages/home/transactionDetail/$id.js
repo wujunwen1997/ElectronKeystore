@@ -16,8 +16,8 @@ class RouterComponent extends Component {
   }
   render() {
     const {transactionDetail, loading, dispatch} = this.props
-    const {inputArr, outputArr, moreText} = transactionDetail
-    const {blockchain, createTime, amount, fee, inputs, outputs, platformCoin, rawTx} = transactionDetail.transactionMsg
+    const {inputArr, outputArr, moreText, transactionMsg} = transactionDetail
+    const {blockchain, createTime, amount, fee, inputs, outputs, platformCoin} = transactionMsg
     const seeAllAddress = () => {
       let obj = {}
       obj.moreText = moreText === '显示所有地址' ? '收起所有地址' : '显示所有地址'
@@ -35,7 +35,7 @@ class RouterComponent extends Component {
         okType: 'danger',
         cancelText: '取消',
         onOk() {
-          const data = ipcRenderer.sendSync('sign-tx', {rawTx, inputs})
+          const data = ipcRenderer.sendSync('sign-tx', transactionMsg)
           const onAutograph = (arg) => {
             errorMsg(arg, () => {message.success("签名成功")})
           }
