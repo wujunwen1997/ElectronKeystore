@@ -263,6 +263,10 @@ export class Wallet {
                 let fail = 0;
                 let duplicate = 0;
                 data.replace(/\n/g, " ").split(" ").forEach(function (wif) {
+                    wif = wif.trim();
+                    if (wif === "") {
+                        return;
+                    }
                     let importResult = self.importWif(wif);
                     if (importResult === -1) {
                         fail += 1;
@@ -299,6 +303,10 @@ export class Wallet {
                 let fail = 0;
                 let duplicate = 0;
                 lineReader.on('line', function (wif) {
+                    wif = wif.trim();
+                    if (wif === "") {
+                        return;
+                    }
                     let importResult = self.importWif(wif);
                     if (importResult === -1) {
                         fail += 1;
