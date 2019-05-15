@@ -19,18 +19,14 @@ class Login extends Component {
     this.props.form.validateFields((err, values) => {
       if (!err) {
         this.setState({loading: true})
-        ipcRenderer.send("login", values);
-        ipcRenderer.on("login-result", this.login);
+        const data = ipcRenderer.sendSync("login", values);
+        const loginSuccess = () => {
+          message.success('登录成功！');
+          router.push('/home/BTC');
+        }
+        errorMsg(data, loginSuccess)
       }
     });
-  }
-  login = (event, arg) => {
-    const loginSuccess = () => {
-      message.success('登录成功！');
-      router.push('/home/BTC');
-    }
-    errorMsg(arg, loginSuccess)
-    ipcRenderer.removeListener("login-result", this.login)
   }
   getWallets = (event, arg) => {
     const success = () => {
