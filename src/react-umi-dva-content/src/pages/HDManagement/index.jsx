@@ -19,23 +19,24 @@ class AddressManagementComponent extends Component {
     const rowSelection = {
       onChange: (selectedRowKeys) => {
         dispatch({
-          type: 'addressManagement/setModel',
+          type: 'hdManagement/setModel',
           payload: {selectedRowKeys: selectedRowKeys}
         })
       }
     };
     const delAddress = (key) => {
       confirm({
-        title: '确认删除此地址?',
+        title: '确认删除此助记词?',
         content: key,
         okText: '确认',
         okType: 'danger',
         cancelText: '取消',
         onOk() {
-          ipcRenderer.send('delete-hd')
+          ipcRenderer.send('delete-hd', key)
           const getDelKeyResult = (event, arg) => {
             const success = () => {
               message.success('删除成功')
+              onPageChange(1)
             }
             errorMsg(arg, success)
             ipcRenderer.removeListener("delete-hd-result", getDelKeyResult)

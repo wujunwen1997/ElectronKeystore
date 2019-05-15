@@ -4,7 +4,6 @@ import router from "umi/router";
 import s from './import.scss'
 import {ipcRenderer} from '@/config/Electron.js'
 import errorMsg from "@/utils/errorMsg.js";
-import {checkPassword, checkWalletName} from "@/utils/index.js";
 
 class App extends Component {
   goBack = () => {
@@ -46,7 +45,7 @@ class App extends Component {
             label="密码"
           >
             {getFieldDecorator('password', {
-              rules: [{ required: true, message: '请输入您的密码' }, { validator: checkPassword}],
+              rules: [{ required: true, message: '请输入您的密码' }],
             })(
               <Input type={'password'} placeholder='请输入您的密码'/>
             )}

@@ -47,8 +47,12 @@ export default {
             ipcRenderer.send('search-key', query.data);
             const getSearchGey = (event, arg) => {
               const success = () => {
-                const {info} = arg.data
-                dispatch({ type: 'setModel', payload: {elements: [info], totalElements: 1}})
+                if (arg.data.find) {
+                  const {info} = arg.data
+                  dispatch({ type: 'setModel', payload: {elements: [info], totalElements: 1}})
+                } else {
+                  dispatch({ type: 'setModel', payload: {elements: [], totalElements: 0}})
+                }
               }
               errorMsg(arg, success)
               ipcRenderer.removeListener("search-key-result", getSearchGey)
