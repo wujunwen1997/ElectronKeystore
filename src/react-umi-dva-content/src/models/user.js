@@ -22,7 +22,8 @@ export default {
   subscriptions: {
     setupHome({ dispatch, history }) {
       return history.listen(({ pathname, query }) => {
-        let arr = ['/home/:id', '/configure', '/addressManagement', '/addressManagement/ImportAddress/:id', '/HDManagement', '/HDManagement/importHD'];
+        let arr = ['/home/:id', '/configure', '/addressManagement', '/addressManagement/ImportAddress/:id', '/HDManagement',
+          '/HDManagement/importHD', '/home/transactionDetail/:id'];
         let needInfo = false;
         arr.forEach(u => {
           if (pathMatchRegexp(u, pathname)) {

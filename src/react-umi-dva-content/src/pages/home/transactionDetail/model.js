@@ -8,6 +8,7 @@ export default {
     transactionMsg: {},
     inputArr: [],
     outputArr: [],
+    rawTx: '',
     moreText: '显示所有地址'
   },
   reducers: {
@@ -27,7 +28,7 @@ export default {
         data = yield call(fetch, getBtcDetail({id: payload.data}));
       }
       const {inputs, outputs} = data
-      let inputArr = (inputs && inputs.length > 6) ? inputs.slice(0,6) : inputs
+      let inputArr = (inputs && inputs.length > 6) ? inputs.slice(0,6) : inputs;
       let outputArr = (outputs && outputs.length > 6) ? outputs.slice(0,6) : outputs;
       if (data) {
         yield put({

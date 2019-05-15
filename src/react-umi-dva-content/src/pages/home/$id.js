@@ -4,13 +4,14 @@ import {connect} from "dva";
 import s from './index.scss';
 import router from "umi/router";
 import { stringify } from 'qs'
+import PropTypes from 'prop-types';
 import {timeFormat, isNumber} from '@/utils'
 import Link from "umi/link";
 
 @connect(({ home, loading }) => ({ home, loading }))
 class HomeComponent extends Component {
   render() {
-    const {home, loading, location} = this.props;
+    const {home, loading, location, dispatch} = this.props;
     const { query, pathname } = location;
     let thisLoad = loading.effects['home/detailList'];
     const {data} = home;
@@ -61,15 +62,16 @@ class HomeComponent extends Component {
       }
     ];
     const rowSelection = {
-      onChange: (selectedRowKeys, selectedRows) => {
-        console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
-      },
-      getCheckboxProps: record => ({
-        disabled: record.name === 'Disabled User', // Column configuration not to be checked
-        name: record.name,
-        show: false
-      })
+      onChange: (selectedRowKeys, ) => {
+        dispatch({
+          type: 'home/querySuccess',
+          payload: {selectedRowKeys: selectedRowKeys}
+        })
+      }
     };
+    const moreAutograph = () => {
+
+    }
     const onPageChange = (page) => {
       router.push({
         pathname,
@@ -96,7 +98,7 @@ class HomeComponent extends Component {
               {
                 parseInt(total) > 0 && (
                   <div>
-                    <Button type="primary" size={'small'} className={[s.autograph, s.newBtn].join(' ')}>批量签名</Button>
+                    <Button type="primary" size={'small'} className={[s.autograph, s.newBtn].join(' ')} onClick={moreAutograph}>批量签名</Button>
                   </div>
                 )
               }
@@ -107,4 +109,10 @@ class HomeComponent extends Component {
     )
   }
 }
+HomeComponent.propTypes = {
+  home: PropTypes.shape({
+    data: PropTypes.object,
+    selectedRowKeys: PropTypes.array
+  })
+};
 export default HomeComponent

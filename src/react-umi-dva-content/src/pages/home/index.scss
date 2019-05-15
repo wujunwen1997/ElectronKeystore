@@ -23,7 +23,7 @@
     :global .ant-table-placeholder{border: none;border-radius: 0;}
   }
   .botttom{
-    position: absolute;bottom: 0;right: 0;background: $baseBackground;@include width-height(100%, 50px);
+    position: absolute;bottom: 0;right: 0;background:white;@include width-height(100%, 50px);
     @include fixed(center, space-between);
     :global .ant-pagination{margin-left: 20px;}
     .autograph{margin-right: 20px;margin-left: 5px;@include refreshBtn;}

@@ -3,6 +3,7 @@ import {Menu, Badge} from 'antd';
 import {connect} from "dva";
 import s from './index.scss'
 import router from "umi/router";
+import PropTypes from 'prop-types';
 
 @connect(({ home, loading }) => ({ home, loading }))
 class HomeComponent extends Component {
@@ -47,4 +48,10 @@ class HomeComponent extends Component {
     )
   }
 }
+HomeComponent.propTypes = {
+  home: PropTypes.shape({
+    coin: PropTypes.array,
+    navList: PropTypes.object
+  })
+};
 export default HomeComponent

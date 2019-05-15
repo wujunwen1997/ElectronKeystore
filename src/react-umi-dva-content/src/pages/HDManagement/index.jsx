@@ -6,10 +6,11 @@ import {connect} from "dva";
 import {ipcRenderer} from '@/config/Electron.js'
 import errorMsg from "@/utils/errorMsg.js";
 import { stringify } from 'qs'
+import PropTypes from 'prop-types';
 const confirm = Modal.confirm;
 
 @connect(({hdManagement}) =>({hdManagement}))
-class AddressManagementComponent extends Component {
+class hdManagementComponent extends Component {
   importAddress = () => {
     router.push('HDManagement/importHD')
   };
@@ -103,7 +104,7 @@ class AddressManagementComponent extends Component {
     return (
       <div className={s.adsMng}>
         <div className={s.top}>
-          <Button type={'primary'} size={'small'} className={s.importBtn} onClick={this.importAddress}>导入HD</Button>
+          <Button type={'primary'} className={s.importBtn} onClick={this.importAddress}>导入HD</Button>
         </div>
         <Table rowSelection={rowSelection} columns={columns} dataSource={totalElements && totalElements > 0 ? elements : []} rowKey={record => record.mnemonic}
                size="middle" pagination={false} />
@@ -119,5 +120,12 @@ class AddressManagementComponent extends Component {
     )
   }
 }
-
-export default AddressManagementComponent
+hdManagementComponent.propTypes = {
+  hdManagement: PropTypes.shape({
+    selectedRowKeys: PropTypes.array,
+    elements: PropTypes.array,
+    pageNum: PropTypes.number,
+    totalElements: PropTypes.number
+  })
+};
+export default hdManagementComponent

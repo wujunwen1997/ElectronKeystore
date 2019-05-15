@@ -47,7 +47,7 @@ class Login extends Component {
     this.getWallets(data)
   }
   render() {
-    const { getFieldDecorator } = this.props.form
+    const { getFieldDecorator } = this.props.form;
 
     return (
       <div className={s.login}>
@@ -91,5 +91,4 @@ class Login extends Component {
     )
   }
 }
-
 export default Form.create({ name: 'login' })(Login);

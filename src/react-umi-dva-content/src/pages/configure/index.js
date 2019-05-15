@@ -6,7 +6,7 @@ import {ipcRenderer} from '@/config/Electron.js'
 import {connect} from "dva";
 import router from "umi/router";
 import errorMsg from "@/utils/errorMsg.js";
-// import copy from 'copy-to-clipboard';
+import PropTypes from 'prop-types';
 
 @connect((userModel) => ({userModel}))
 class ConfigureComponent extends Component {
@@ -94,5 +94,14 @@ class ConfigureComponent extends Component {
     )
   }
 }
+ConfigureComponent.propTypes = {
+  userModel: PropTypes.shape({
+    aesToken: PropTypes.string,
+    aesKey: PropTypes.string,
+    url: PropTypes.string,
+    walletPath: PropTypes.string,
+    walletName: PropTypes.string
+  })
+};
 const WrappedDynamicRule = Form.create({ name: 'dynamic_rule' })(ConfigureComponent);
 export default WrappedDynamicRule

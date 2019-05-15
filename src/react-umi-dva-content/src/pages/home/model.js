@@ -9,6 +9,7 @@ export default {
   state: {
     data: {},
     coin: ['BTC'],
+    selectedRowKeys: [],
     navList: {
       BTC: 0, BCH: 0, ETH: 0, LTC: 0, RCO: 0, ECO: 0
     }

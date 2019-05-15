@@ -6,6 +6,7 @@ import {connect} from "dva";
 import {ipcRenderer} from '@/config/Electron.js'
 import errorMsg from "@/utils/errorMsg.js";
 import { stringify } from 'qs'
+import PropTypes from 'prop-types';
 const confirm = Modal.confirm;
 const Search = Input.Search;
 
@@ -108,7 +109,7 @@ class AddressManagementComponent extends Component {
     return (
       <div className={s.adsMng}>
         <div className={s.top}>
-          <Button type={'primary'} size={'small'} className={s.importBtn} onClick={this.importAddress}>导入地址</Button>
+          <Button type={'primary'} className={s.importBtn} onClick={this.importAddress}>导入地址</Button>
           <Search
             placeholder="请输入地址"
             onSearch={onSearch}
@@ -129,5 +130,12 @@ class AddressManagementComponent extends Component {
     )
   }
 }
-
+AddressManagementComponent.propTypes = {
+  addressManagement: PropTypes.shape({
+    selectedRowKeys: PropTypes.array,
+    elements: PropTypes.array,
+    pageNum: PropTypes.number,
+    totalElements: PropTypes.number
+  })
+};
 export default AddressManagementComponent

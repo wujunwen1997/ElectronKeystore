@@ -1,9 +1,13 @@
 import React, {Component, Fragment} from 'react'
 import s from './index.scss'
-import {Icon,Button, Alert, Empty} from 'antd';
+import {Icon,Button, Alert, Empty, message, Modal} from 'antd';
 import router from 'umi/router';
 import {connect} from "dva";
+import PropTypes from 'prop-types';
 import {timeFormat, filterLastZore} from '@/utils/index.js'
+import {ipcRenderer} from "../../../config/Electron";
+import errorMsg from "@/utils/errorMsg.js";
+const confirm = Modal.confirm;
 
 @connect(({ transactionDetail, loading }) => ({ transactionDetail, loading }))
 class RouterComponent extends Component {
@@ -13,7 +17,7 @@ class RouterComponent extends Component {
   render() {
     const {transactionDetail, loading, dispatch} = this.props
     const {inputArr, outputArr, moreText} = transactionDetail
-    const {blockchain, createTime, amount, fee, inputs, outputs, platformCoin} = transactionDetail.transactionMsg
+    const {blockchain, createTime, amount, fee, inputs, outputs, platformCoin, rawTx} = transactionDetail.transactionMsg
     const seeAllAddress = () => {
       let obj = {}
       obj.moreText = moreText === '显示所有地址' ? '收起所有地址' : '显示所有地址'
@@ -23,6 +27,21 @@ class RouterComponent extends Component {
         type: 'transactionDetail/querySuccess',
         payload: obj
       })
+    }
+    const autograph = () => {
+      confirm({
+        title: '确认对此交易进行签名?',
+        okText: '确认',
+        okType: 'danger',
+        cancelText: '取消',
+        onOk() {
+          const data = ipcRenderer.sendSync('sign-tx', {rawTx, inputs})
+          const onAutograph = (arg) => {
+            errorMsg(arg, () => {message.success("签名成功")})
+          }
+          onAutograph(data)
+        },
+      });
     }
     const getDataMap = () => {
       return (
@@ -91,7 +110,7 @@ class RouterComponent extends Component {
           }
           <div className={s.bot}>
             <Alert message="温馨提示：签名一旦确认将无法撤销!" type="info" showIcon />
-            <Button onClick={this.back} size={'small'}>返回</Button> <Button size={'small'}>签名</Button>
+            <Button onClick={this.back} size={'small'}>返回</Button> <Button size={'small'} onClick={autograph}>签名</Button>
           </div>
         </Fragment>
       )
@@ -113,5 +132,11 @@ class RouterComponent extends Component {
     )
   }
 }
-
+RouterComponent.propTypes = {
+  transactionDetail: PropTypes.shape({
+    moreText: PropTypes.string,
+    inputArr: PropTypes.array,
+    outputArr: PropTypes.array
+  })
+};
 export default RouterComponent

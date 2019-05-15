@@ -7,6 +7,7 @@ import {ipcRenderer} from '@/config/Electron.js'
 import errorMsg from "@/utils/errorMsg.js";
 import router from "umi/router";
 import {remote} from "../../../config/Electron";
+import PropTypes from 'prop-types';
 const { TextArea } = Input;
 
 @connect(({addressManagement}) => ({addressManagement}))
@@ -110,6 +111,11 @@ class Sider extends Component {
     );
   }
 }
-
-
+Sider.propTypes = {
+  addressManagement: PropTypes.shape({
+    wifText: PropTypes.string,
+    jsonText: PropTypes.string,
+    password: PropTypes.string
+  })
+};
 export default Sider

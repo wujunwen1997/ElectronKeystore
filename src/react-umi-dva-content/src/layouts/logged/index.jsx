@@ -40,16 +40,16 @@ class logged extends Component {
            style={{width: '100%'}}
          >
            <Menu.Item key="signatureTransaction">
-             <Link to="/home/BTC"><Icon type="form" />签名交易</Link>
+             <Link to="/home/BTC"><i className='iconfont iconOff-linesignature'/>签名交易</Link>
            </Menu.Item>
            <Menu.Item key="addressManagement">
-             <Link to="/addressManagement"><Icon type="book" />地址管理</Link>
+             <Link to="/addressManagement"><i className='iconfont iconAddressmanagement' />地址管理</Link>
            </Menu.Item>
            <Menu.Item key="HDManagement">
-             <Link to="/HDManagement"><Icon type="unlock" />HD管理</Link>
+             <Link to="/HDManagement"><i className='iconfont iconHDmanagement' />HD管理</Link>
            </Menu.Item>
            <Menu.Item key="configure" style={{float: 'right'}}>
-             <Link to="/configure"><Icon type="setting" />{this.state.walletName}</Link>
+             <Link to="/configure"><i className='iconfont iconqianbao1' style={{fontSize: '24px'}}/>{this.state.walletName}</Link>
            </Menu.Item>
          </Menu>
        </div>

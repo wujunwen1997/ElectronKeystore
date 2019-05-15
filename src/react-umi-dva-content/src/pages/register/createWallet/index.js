@@ -8,6 +8,7 @@ import {ipcRenderer} from '@/config/Electron.js'
 import LinkOpt from '@/components/LinkOpts'
 import errorMsg from "@/utils/errorMsg.js";
 import {checkPassword} from "@/utils/index.js";
+import PropTypes from 'prop-types';
 
 @connect(({userModel}) => ({userModel}))
 class RouterComponent extends Component {
@@ -85,6 +86,13 @@ class RouterComponent extends Component {
     )
   }
 }
+RouterComponent.propTypes = {
+  userModel: PropTypes.shape({
+    aesKey: PropTypes.string,
+    aesToken: PropTypes.string,
+    url: PropTypes.string
+  })
+};
 const WrappedNormalLoginForm = Form.create({ name: 'create-wallet' })(RouterComponent);
 
 export default WrappedNormalLoginForm
