@@ -46,9 +46,9 @@ class RouterComponent extends Component {
             </li>
           </ul>
           <div className={s.amount } style={{'marginTop': '40px'}}>
-            <div><p>付款地址({inputs.length})</p></div>
+            <div><p>付款地址</p></div>
             <div className={s.icon}></div>
-            <div><p>收款地址({outputs.length})</p></div>
+            <div><p>收款地址</p></div>
           </div>
           <div className={[s.amount, s.maxHeight, moreText !== '显示所有地址' && s.max].join(' ') }>
             <div className={s.putGet}>
@@ -57,7 +57,7 @@ class RouterComponent extends Component {
                   inputArr.map((u, index) => (
                     <li key={index}>
                       {u.address}
-                      <span className={s.address}>{filterLastZore(u.amount)}&nbsp; {platformCoin}</span>
+                      &nbsp;<span className={s.address}>{filterLastZore(u.amount)}&nbsp; {platformCoin}</span>
                     </li>
                   ))
                 }
@@ -73,7 +73,7 @@ class RouterComponent extends Component {
                   outputArr.map((u, index) => (
                     <li key={index}>
                       {u.address}
-                      <span className={s.address}>{filterLastZore(u.amount)}&nbsp; {platformCoin}</span>
+                      &nbsp;<span className={s.address}>{filterLastZore(u.amount)} &nbsp;{platformCoin}</span>
                     </li>
                   ))
                 }
