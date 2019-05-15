@@ -12,7 +12,7 @@ const Search = Input.Search;
 @connect(({addressManagement}) =>({addressManagement}))
 class AddressManagementComponent extends Component {
   importAddress = () => {
-    router.push('addressManagement/importAddress')
+    router.push('addressManagement/importAddress/wif')
   };
   render() {
     const {addressManagement, location, dispatch} = this.props;

@@ -22,7 +22,7 @@ export default {
   subscriptions: {
     setupHome({ dispatch, history }) {
       return history.listen(({ pathname, query }) => {
-        let arr = ['/home/:id', '/configure', '/addressManagement', '/addressManagement/ImportAddress', '/HDManagement', '/HDManagement/importHD'];
+        let arr = ['/home/:id', '/configure', '/addressManagement', '/addressManagement/ImportAddress/:id', '/HDManagement', '/HDManagement/importHD'];
         let needInfo = false;
         arr.forEach(u => {
           if (pathMatchRegexp(u, pathname)) {
@@ -71,7 +71,7 @@ export default {
           title = 'signatureTransaction'
         } else if (pathMatchRegexp('/configure', pathname)) {
           title = 'configure'
-        } else if (pathMatchRegexp('/addressManagement', pathname) || pathMatchRegexp('/addressManagement/ImportAddress', pathname)) {
+        } else if (pathMatchRegexp('/addressManagement', pathname) || pathMatchRegexp('/addressManagement/ImportAddress/:id', pathname)) {
           title = 'addressManagement'
         } else if (pathMatchRegexp('/HDManagement', pathname) || pathMatchRegexp('/HDManagement/importHD', pathname)) {
           title = 'HDManagement'

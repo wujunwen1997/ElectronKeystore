@@ -7,9 +7,7 @@ export default {
   state: {
     isWif: true,
     wifText: '',
-    wifUrl: '',
     jsonText: '',
-    jsonUrl: '',
     password: '',// json密码
     totalElements: 0,//总条数
     pageNum: 1, // 当前页位置
@@ -60,8 +58,8 @@ export default {
             ipcRenderer.on("search-key-result", getSearchGey);
           }
         }
-        if (pathMatchRegexp('/addressManagement/ImportAddress', pathname)) {
-          dispatch({ type: 'setModel', payload: {wifText: '', jsonText: ''}})
+        if (pathMatchRegexp('/addressManagement/ImportAddress/:id', pathname)) {
+          dispatch({ type: 'setModel', payload: {wifText: '', jsonText: '', password: ''}})
         }
       })
     },
