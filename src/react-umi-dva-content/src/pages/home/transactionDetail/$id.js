@@ -46,27 +46,11 @@ class RouterComponent extends Component {
             </li>
           </ul>
           <div className={s.amount } style={{'marginTop': '40px'}}>
-            <div><p>付款地址({outputs.length})</p></div>
+            <div><p>付款地址({inputs.length})</p></div>
             <div className={s.icon}></div>
-            <div><p>收款地址({inputs.length})</p></div>
+            <div><p>收款地址({outputs.length})</p></div>
           </div>
           <div className={[s.amount, s.maxHeight, moreText !== '显示所有地址' && s.max].join(' ') }>
-            <div className={s.putGet}>
-              <ul>
-                {
-                  outputArr.map((u, index) => (
-                    <li key={index}>
-                      {u.address}
-                      <span className={s.address}>{filterLastZore(u.amount)}&nbsp; {platformCoin}</span>
-                      </li>
-                  ))
-                }
-              </ul>
-              {
-                outputArr.length !== outputs.length && outputs && outputs.length > 6 && <span className={s.more}>......</span>
-              }
-            </div>
-            <div className={s.icon}><Icon type="right-circle" /></div>
             <div className={s.putGet}>
               <ul>
                 {
@@ -80,6 +64,22 @@ class RouterComponent extends Component {
               </ul>
               {
                 inputArr.length !== inputs.length && inputs && inputs.length > 6 && <span className={s.more}>......</span>
+              }
+            </div>
+            <div className={s.icon}><Icon type="right-circle" /></div>
+            <div className={s.putGet}>
+              <ul>
+                {
+                  outputArr.map((u, index) => (
+                    <li key={index}>
+                      {u.address}
+                      <span className={s.address}>{filterLastZore(u.amount)}&nbsp; {platformCoin}</span>
+                    </li>
+                  ))
+                }
+              </ul>
+              {
+                outputArr.length !== outputs.length && outputs && outputs.length > 6 && <span className={s.more}>......</span>
               }
             </div>
           </div>
