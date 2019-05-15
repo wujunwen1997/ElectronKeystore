@@ -84,7 +84,11 @@ class ConfigureComponent extends Component {
           </div>
           <div className={s.textGroupDiv}>
             <p>版本信息</p>
-            <div><label>官网</label><span>https://test.chainspay.com/index.html</span></div>
+            <div className={s.keepWay}>
+              <label></label>
+              <div style={{width: '80px'}}>官网</div>
+              <div style={{color: '#077BE7'}}>https://test.chainspay.com/index.html</div>
+            </div>
             <div><label>当前版本</label><span>V1.0</span></div>
           </div>
         </div>
