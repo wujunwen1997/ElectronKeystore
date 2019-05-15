@@ -110,11 +110,11 @@ class AddressManagementComponent extends Component {
         <Table rowSelection={rowSelection} columns={columns} dataSource={totalElements && totalElements > 0 ? elements : []} rowKey={record => record.mnemonic}
                size="middle" pagination={false} />
         <div className={s.botttom}>
-          <Pagination hideOnSinglePage={!(totalElements && totalElements>1)} total={totalElements} showQuickJumper defaultCurrent={pageNum}
+          <Pagination total={totalElements} showQuickJumper defaultCurrent={pageNum}
                       showTotal={totalElements => `共 ${totalElements} 条`}
                       size={'small'} onChange={onPageChange} />
           {
-            totalElements && (totalElements > 1) ? getDelBtn() : null
+            totalElements && (totalElements > 0) ? getDelBtn() : null
           }
         </div>
       </div>

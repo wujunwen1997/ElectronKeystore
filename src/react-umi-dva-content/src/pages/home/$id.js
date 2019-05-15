@@ -91,7 +91,7 @@ class HomeComponent extends Component {
         {
           list && list.length >0 && (
             <div className={s.botttom}>
-              <Pagination defaultPageSize={20} hideOnSinglePage={true} total={total} showQuickJumper showTotal={total => `共 ${total} 条`}
+              <Pagination defaultPageSize={20} total={total} showQuickJumper showTotal={total => `共 ${total} 条`}
                           size={'small'} onChange={onPageChange}/>
               {
                 parseInt(total) > 0 && (

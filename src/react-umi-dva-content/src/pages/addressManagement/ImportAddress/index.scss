@@ -36,11 +36,11 @@
           }
         }
         .newBtn{
-          @include newBtn;font-size: 12px;
+          @include newBtn;
           &:hover{ @include hoverNewBtn;}
         }
         .importBtn{
-          margin-right: 10px;
+          margin-right: 10px;font-size: 12px;
         }
       }
     }

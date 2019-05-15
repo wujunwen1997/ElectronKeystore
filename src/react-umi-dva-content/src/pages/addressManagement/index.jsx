@@ -120,11 +120,11 @@ class AddressManagementComponent extends Component {
         <Table rowSelection={rowSelection} columns={columns} dataSource={totalElements && totalElements > 0 ? elements : []} rowKey={record => record.pubkeyHash}
                size="middle" pagination={false} />
         <div className={s.botttom}>
-          <Pagination defaultCurrent={pageNum} hideOnSinglePage={!(totalElements && totalElements>1)} total={totalElements}
+          <Pagination defaultCurrent={pageNum} total={totalElements}
                       showQuickJumper showTotal={totalElements => `共 ${totalElements} 条`}
                       size={'small'} onChange={onPageChange} />
           {
-            totalElements && (totalElements > 1) ? getDelBtn() : ''
+            totalElements && (totalElements > 0) ? getDelBtn() : ''
           }
         </div>
       </div>

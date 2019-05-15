@@ -40,9 +40,14 @@
   .max{height: calc(100% - 146px);}
   .bot{
     position: fixed;bottom: 0;right: 0;padding: 0 40px;line-height: 40px;background: white;
+    :global .ant-alert-message{font-size: 12px;}
     @include width-height(calc(100% - 120px), 40px);
     >div{width: 50%;float: left;border: none;background: none}
-    >button{float: right;margin-left:6px; };
+    >button{
+      float: right;margin-left:6px;margin-top: 8px;
+      @include newBtn;
+      &:hover{ @include hoverNewBtn;}
+    };
   }
   .seeAllAddress{
     text-align: center;margin-top:20px;color:rgba(153,153,153,1);cursor: pointer;
