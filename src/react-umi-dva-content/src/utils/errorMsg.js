@@ -1,7 +1,7 @@
 import {message} from 'antd';
 
 const errorMsg = (arg, success, fail) => {
-  if (arg && arg.data && arg.data !== '{}') {
+  if (arg && arg.data && arg.data !== '{}' && !arg.errorMsg) {
     success && success()
   } else {
     message.error(arg.errorMsg)

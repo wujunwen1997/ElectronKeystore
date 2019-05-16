@@ -66,7 +66,7 @@ export default {
     setupTitle({ dispatch, history }) {
       return history.listen(({ pathname, query }) => {
         let title = ''
-        if (pathMatchRegexp('/home/:id', pathname)) {
+        if (pathMatchRegexp('/home/:id', pathname) || pathMatchRegexp('/home/transactionDetail/:id', pathname)) {
           title = 'signatureTransaction'
         } else if (pathMatchRegexp('/configure', pathname)) {
           title = 'configure'

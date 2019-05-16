@@ -6,7 +6,8 @@ import {connect} from "dva";
 import PropTypes from 'prop-types';
 import {timeFormat, filterLastZore} from '@/utils/index.js'
 import {ipcRenderer} from "../../../config/Electron";
-import errorMsg from "@/utils/errorMsg.js";
+import fetch from '@/api/config/fetch.js'
+import {btcAutograph, ethAutograph} from '@/api/signatureTransaction'
 const confirm = Modal.confirm;
 
 @connect(({ transactionDetail, loading }) => ({ transactionDetail, loading }))
@@ -28,6 +29,13 @@ class RouterComponent extends Component {
         payload: obj
       })
     }
+    const axiosAutograph = (id, rawTx) => {
+      let api = blockchain === 'ETHEREUM' ? ethAutograph : btcAutograph;
+      fetch(api({id, rawTx})).then(() => {
+          message.success('签名成功')
+          router.goBack()
+        })
+    }
     const autograph = () => {
       confirm({
         title: '确认对此交易进行签名?',
@@ -37,7 +45,11 @@ class RouterComponent extends Component {
         onOk() {
           const data = ipcRenderer.sendSync('sign-tx', transactionMsg)
           const onAutograph = (arg) => {
-            errorMsg(arg, () => {message.success("签名成功")})
+            if (arg && arg.data && arg.data !== '{}' && !arg.errorMsg) {
+              axiosAutograph(transactionMsg.id, arg.data)
+            } else {
+              message.error(arg.errorMsg)
+            }
           }
           onAutograph(data)
         },

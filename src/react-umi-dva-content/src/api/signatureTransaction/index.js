@@ -14,3 +14,11 @@ export function getEthDetail(data) {
 export function getBtcDetail(data) {
   return {url: `tx/btc/info`, data}
 }
+//  btc的签名交易
+export function btcAutograph(data) {
+  return {url: `/btc/signedTx/upload`, data}
+}
+//  eth的签名交易
+export function ethAutograph(data) {
+  return {url: `/eth/signedTx/upload`, data}
+}

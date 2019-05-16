@@ -7,6 +7,9 @@ import { stringify } from 'qs'
 import PropTypes from 'prop-types';
 import {timeFormat, isNumber} from '@/utils'
 import Link from "umi/link";
+import errorMsg from "@/utils/errorMsg.js";
+import {ipcRenderer} from "../../config/Electron";
+import {getEthDetail, getBtcDetail} from '@/api/signatureTransaction'
 
 @connect(({ home, loading }) => ({ home, loading }))
 class HomeComponent extends Component {
@@ -65,7 +68,7 @@ class HomeComponent extends Component {
       onChange: (selectedRowKeys, selectedRows) => {
         let arr = []
         selectedRows.forEach(u => {
-          arr.push({id: u.id, symbol: u.symbol})
+          arr.push({id: u.id, blockchain: u.symbol})
         })
         dispatch({
           type: 'home/querySuccess',
@@ -75,7 +78,19 @@ class HomeComponent extends Component {
     };
     const moreAutograph = () => {
       if (selectedRowKeys && selectedRowKeys.length > 0) {
-
+        const onAutograph = (arg) => {
+          errorMsg(arg, '', () => {return false})
+        }
+        selectedRowKeys.forEach(u => {
+          let api = u.blockchain === 'ETH' ? getEthDetail : getBtcDetail
+          fetch(api({id: u.id})).then((data) => {
+            const res = ipcRenderer.sendSync('sign-tx', data)
+            return onAutograph(res)
+          }).catch(() => {
+            message.error('签名请求失败')
+            return false
+          })
+        })
       } else {
         message.warning('请至少选择1个交易')
       }

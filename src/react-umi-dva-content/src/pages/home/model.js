@@ -89,7 +89,7 @@ export default {
           payload: {navList: obj},
         })
       }
-    }
+    },
   },
   subscriptions: {
     setup({ dispatch, history }) {
@@ -101,6 +101,13 @@ export default {
         }
       })
     },
+    setupTotal({ dispatch, history }) {
+      return history.listen(({ pathname, query }) => {
+        if (pathMatchRegexp('/home/transactionDetail/:id', pathname)) {
+          dispatch({ type: 'getNavTotal'})
+        }
+      })
+    }
   },
 }
 

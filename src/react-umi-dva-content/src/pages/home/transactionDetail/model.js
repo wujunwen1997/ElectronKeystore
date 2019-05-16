@@ -8,7 +8,6 @@ export default {
     transactionMsg: {},
     inputArr: [],
     outputArr: [],
-    rawTx: '',
     moreText: '显示所有地址'
   },
   reducers: {
@@ -48,6 +47,7 @@ export default {
         const m = pathMatchRegexp('/home/transactionDetail/:id', pathname)
         if (m) {
           dispatch({ type: 'getDetails', payload: {data: m[1], ...query}})
+          dispatch({type: 'querySuccess', payload: {moreText: '显示所有地址'}})
         }
       })
     },

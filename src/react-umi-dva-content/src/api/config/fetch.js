@@ -106,8 +106,12 @@ export default (res) => {
                     reject(arg.errorMsg)
                   }
                 }
-                const o = ipcRenderer.sendSync("decrypt-data", res.data);
-                getDataEventLast(o)
+                if (res.data) {
+                  const o = ipcRenderer.sendSync("decrypt-data", res.data);
+                  getDataEventLast(o)
+                } else {
+                  resolve();
+                }
               } else {
                 message.error((res && res.msg) || '请求失败')
                 reject(res)
