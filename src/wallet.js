@@ -4,7 +4,6 @@ const fs = require('fs');
 const Database = require('better-sqlite3');
 const crypto = require('crypto');
 const bcrypto = require('blockchain-crypto');
-const readline = require('readline');
 const dateFormat = require('dateformat');
 
 export class Wallet {
@@ -350,11 +349,8 @@ export class Wallet {
          */
         self.ipcMain.on('search-key', function (event, data) {
             try {
-                const hash = Wallet.decodeAddress(data);
-                if (hash === undefined) {
-                    event.returnValue = {data: null, errorMsg: '地址格式不正确'};
-                    return;
-                }
+                const result = Wallet.decodeAddress(data);
+                const hash = result.hash;
                 const stmt = self.db.prepare('SELECT * FROM key WHERE pubkey_hash = ? OR p2sh_p2wpkh = ?');
                 const info = stmt.get(hash, hash);
                 if (info === undefined) {
@@ -442,8 +438,8 @@ export class Wallet {
                 if (selectInfo === undefined) {
                     const seed = bcrypto.mnemonic_toseed(data.mnemonic, data.password);
                     let cipher = crypto.createCipheriv('aes-128-cbc', self.aesKey, Buffer.alloc(16, 0));
-                    cipher.update(Buffer.from(seed));
-                    const encryptSeed = cipher.final('hex');
+                    let encryptSeed = cipher.update(Buffer.from(seed), 'binary', 'hex');
+                    encryptSeed += cipher.final('hex');
                     const insert = self.db.prepare('INSERT INTO hd VALUES (?, ?, ?)');
                     const insertInfo = insert.run(data.mnemonic, encryptSeed, new Date().getTime());
                     if (insertInfo.changes === 1) {
@@ -541,7 +537,8 @@ export class Wallet {
         交易签名，参数data是交易详情
         {
           rawTx:'',
-          inputs:[...]
+          inputs:[...],
+          ...
         }
         返回结果result, 成功返回签名后的rawTx，如果失败则data为null，errorMsg会包含失败原因
         {
@@ -551,7 +548,48 @@ export class Wallet {
          */
         self.ipcMain.on('sign-tx', function (event, data) {
             try {
-                event.returnValue = {data: null, errorMsg:'接口尚未实现'};
+                let bcryptochain = undefined;
+                if (data.blockchain === 'BITCOIN') {
+                    bcryptochain = 'btc';
+                } else if (data.blockchain === 'RCOIN' || data.blockchain === 'ECOIN') {
+                    bcryptochain = 'rcoin';
+                } else if (data.blockchain === 'ETHEREUM') {
+                    bcryptochain = 'eth';
+                }
+                if (bcryptochain === undefined) {
+                    event.returnValue = {data: null, errorMsg:`${data.blockchain}的交易签名尚未支持`};
+                    return;
+                }
+                if (data.blockchain !== 'ETHEREUM') {
+                    let inputs = [];
+                    let keys = [];
+                    data.inputs.forEach(function (input) {
+                        let key = self.findKey(input.address, input.hdPath);
+                        if (key !== undefined) {
+                            keys.push(key);
+                        }
+                        inputs.push({
+                            txid: input.txHash,
+                            output: input.outpoint,
+                            amount: input.amount,
+                            scriptpubkey: input.scriptPubKey,
+                            witnessScript: input.witnessScript,
+                            redeemScript: input.redeemScript,
+                        })
+                    });
+                    let signInfo = bcrypto[bcryptochain].sign_rawtransaction(bcrypto.from_hex(data.rawTx), keys, inputs);
+                    for (let i = 0; i < signInfo.sign_status.length; i++) {
+                        let inputSignStatus = signInfo.sign_status[i];
+                        if (inputSignStatus !== bcrypto.SIGN_OK) {
+                            const address = data.inputs[i].address;
+                            event.returnValue = {data: null, errorMsg:`签名失败：缺少${address}的key`};
+                            return;
+                        }
+                    }
+                    event.returnValue = {data: bcrypto.to_hex(signInfo.rawtx), errorMsg:null};
+                } else {
+                    event.returnValue = {data: null, errorMsg: '接口尚未实现'};
+                }
             } catch (e) {
                 event.returnValue = {data: null, errorMsg: e.message};
             }
@@ -611,8 +649,8 @@ export class Wallet {
         const select = this.db.prepare('SELECT * FROM key WHERE pubkey_hash = ?');
         const selectInfo = select.get(importResult.pubkeyHash);
         if (selectInfo === undefined) {
-            const insert = this.db.prepare('INSERT INTO key VALUES (?, ?, ?, ?)');
-            const insertInfo = insert.run(importResult.pubkeyHash, importResult.p2shP2wpkh, importResult.encryptKey, new Date().getTime());
+            const insert = this.db.prepare('INSERT INTO key VALUES (?, ?, ?, ?, ?)');
+            const insertInfo = insert.run(importResult.pubkeyHash, importResult.p2shP2wpkh, importResult.encryptKey, importResult.compressed, new Date().getTime());
             if (insertInfo.changes === 1) {
                 return 1;
             } else {
@@ -641,11 +679,13 @@ export class Wallet {
             const pubkey = key.get_pubkey();
             const keyRaw = key.get_raw();
             let cipher = crypto.createCipheriv('aes-128-cbc', this.aesKey, Buffer.alloc(16, 0));
-            cipher.update(Buffer.from(keyRaw));
+            let encryptKey = cipher.update(Buffer.from(keyRaw), 'binary', 'hex');
+            encryptKey += cipher.final('hex');
             return {
-                encryptKey:cipher.final('hex'),
+                encryptKey:encryptKey,
                 pubkeyHash:bcrypto[blockchain].get_outputscript_for_key(pubkey, bcrypto.P2PKH),
-                p2shP2wpkh:bcrypto[blockchain].get_outputscript_for_key(pubkey, bcrypto.P2SH)
+                p2shP2wpkh:bcrypto[blockchain].get_outputscript_for_key(pubkey, bcrypto.P2SH),
+                compressed:key.is_compressed && key.is_compressed() ? 1 : 0
             }
         } catch (e) {
             return undefined;
@@ -677,13 +717,15 @@ export class Wallet {
             const pubkey = key.get_pubkey();
             const keyRaw = key.get_raw();
             let cipher = crypto.createCipheriv('aes-128-cbc', this.aesKey, Buffer.alloc(16, 0));
-            cipher.update(Buffer.from(keyRaw));
+            let encryptKey = cipher.update(Buffer.from(keyRaw), 'binary', 'hex');
+            encryptKey += cipher.final('hex');
             return {
                 success:true,
                 data:{
-                    encryptKey:cipher.final('hex'),
+                    encryptKey:encryptKey,
                     pubkeyHash:bcrypto.eth_PublicKey.to_address(pubkey),
-                    p2shP2wpkh:null
+                    p2shP2wpkh:null,
+                    compressed:0
                 }
             }
         } catch (e) {
@@ -692,26 +734,34 @@ export class Wallet {
     }
 
     static decodeAddress(address) {
-        let hash = Wallet.decodeBlockchainAddress('btc', address);
-        if (hash === undefined) {
-            hash = Wallet.decodeBlockchainAddress('rcoin', address);
+        let result = Wallet.decodeBlockchainAddress('btc', address);
+        if (result === undefined) {
+            result = Wallet.decodeBlockchainAddress('rcoin', address);
         }
-        if (hash === undefined) {
-            hash = Wallet.decodeBlockchainAddress('rcoin', address, 'get_ecoin_chainparams');
+        if (result === undefined) {
+            result = Wallet.decodeBlockchainAddress('rcoin', address, 'get_ecoin_chainparams');
         }
-        return hash;
+        return result !== undefined ? result : {hash:address, blockchain:'eth'};
     }
 
     static decodeBlockchainAddress(blockchain, address, getChainparamsFuncName = 'get_chainparams') {
         try {
             const mainNetParams = bcrypto[blockchain][getChainparamsFuncName]('main');
             const outputscript = bcrypto[blockchain].decode_address(address, mainNetParams);
-            return bcrypto.to_hex(outputscript.get_bytes());
+            return {
+                hash:bcrypto.to_hex(outputscript.get_bytes()),
+                blockchain:blockchain,
+                netParams:mainNetParams
+            };
         } catch (e) {
             try {
-                const testNetParams = bcrypto[blockchain][getChainparamsFuncName]('testnet');
+                const testNetParams = bcrypto[blockchain][getChainparamsFuncName]('test');
                 const outputscript = bcrypto[blockchain].decode_address(address, testNetParams);
-                return bcrypto.to_hex(outputscript.get_bytes());
+                return {
+                    hash:bcrypto.to_hex(outputscript.get_bytes()),
+                    blockchain:blockchain,
+                    netParams:testNetParams
+                };
             } catch (e) {
                 return undefined;
             }
@@ -770,5 +820,94 @@ export class Wallet {
         } catch (e) {
             event.returnValue = {data: null, errorMsg: e.message};
         }
+    }
+
+    findKey(address, hdPath) {
+        const result = Wallet.decodeAddress(address);
+        const hash = result.hash;
+        const blockchain = result.blockchain;
+        let key = this.findSingleKey(hash, blockchain);
+        if (key === undefined) {
+            if (hdPath && hdPath !== '') {
+                return this.findKeyByHd(hash, blockchain, hdPath);
+            }
+        }
+        return key;
+    }
+
+    findSingleKey(hash, blockchain) {
+        const stmt = this.db.prepare('SELECT * FROM key WHERE pubkey_hash = ? OR p2sh_p2wpkh = ?');
+        const info = stmt.get(hash, hash);
+        if (info !== undefined) {
+            let decipher = crypto.createDecipheriv('aes-128-cbc', this.aesKey, Buffer.alloc(16, 0));
+            let decrypt = decipher.update(info.encrypt_key, 'hex', 'hex');
+            decrypt += decipher.final('hex');
+            const rawBytes = bcrypto.from_hex(decrypt);
+            const blockchainLib = bcrypto[blockchain+'_Key'];
+            let key = undefined;
+            try {
+                key = blockchainLib.from_rawbytes(rawBytes);
+            } catch (e) {
+                try {
+                    const is_compressed = info.compressed === 1;
+                    key = blockchainLib.from_rawbytes(rawBytes, is_compressed);
+                } catch (e) {
+                }
+            }
+            return key
+        } else {
+            return undefined;
+        }
+    }
+
+    findKeyByHd(hash, blockchain, hdPath) {
+        const stmt = this.db.prepare('SELECT * FROM hd');
+        const info = stmt.all();
+        if (info.length === 0) {
+            return undefined;
+        }
+        for (let i = 0; i < info.length; i++) {
+            const raw = info[i];
+            let decipher = crypto.createDecipheriv('aes-128-cbc', this.aesKey, Buffer.alloc(16, 0));
+            let seed = decipher.update(raw.encrypt_seed, 'hex', 'hex');
+            seed += decipher.final('hex');
+            let key = bcrypto[blockchain+'_Key'].from_seed(bcrypto.from_hex(seed));
+            let pathArray = Wallet.parseHdPath(hdPath);
+            pathArray.forEach(function (i) {
+                key = key.derive(i);
+            });
+            let pubkey = key.get_pubkey();
+            let pubkeyhash = bcrypto[blockchain].get_outputscript_for_key(pubkey, bcrypto.P2PKH);
+            let p2shp2wpkh = bcrypto[blockchain].get_outputscript_for_key(pubkey, bcrypto.P2SH);
+            if (hash === pubkeyhash || hash === p2shp2wpkh) {
+                return key;
+            }
+        }
+        return undefined;
+    }
+
+    static parseHdPath(text) {
+        // skip the root
+        if (/^m\//i.test(text)) {
+            text = text.slice(2)
+        }
+
+        let path = text.split('/');
+        let ret = new Array(path.length);
+        for (let i = 0; i < path.length; i++) {
+            let tmp = /(\d+)([hH']?)/.exec(path[i]);
+            ret[i] = parseInt(tmp[1], 10);
+
+            if (ret[i] >= 0x80000000) {
+                throw new Error('Invalid child index')
+            }
+
+            if (tmp[2] === 'h' || tmp[2] === 'H' || tmp[2] === '\'') {
+                ret[i] += 0x80000000
+            } else if (tmp[2].length !== 0) {
+                throw new Error('Invalid modifier')
+            }
+        }
+        return ret;
     }
 }
