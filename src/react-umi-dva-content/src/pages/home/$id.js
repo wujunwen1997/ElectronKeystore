@@ -7,9 +7,10 @@ import { stringify } from 'qs'
 import PropTypes from 'prop-types';
 import {timeFormat, isNumber} from '@/utils'
 import Link from "umi/link";
+import fetch from '@/api/config/fetch.js'
 import errorMsg from "@/utils/errorMsg.js";
 import {ipcRenderer} from "../../config/Electron";
-import {getEthDetail, getBtcDetail} from '@/api/signatureTransaction'
+import {getEthDetail, getBtcDetail, btcAutograph, ethAutograph} from '@/api/signatureTransaction'
 
 @connect(({ home, loading }) => ({ home, loading }))
 class HomeComponent extends Component {
@@ -78,19 +79,30 @@ class HomeComponent extends Component {
     };
     const moreAutograph = () => {
       if (selectedRowKeys && selectedRowKeys.length > 0) {
-        const onAutograph = (arg) => {
-          errorMsg(arg, '', () => {return false})
-        }
-        selectedRowKeys.forEach(u => {
-          let api = u.blockchain === 'ETH' ? getEthDetail : getBtcDetail
+        const goQian = (k) => {
+          let u = selectedRowKeys[k]
+          let api = u.blockchain === 'ETH' ? getEthDetail : getBtcDetail;
           fetch(api({id: u.id})).then((data) => {
-            const res = ipcRenderer.sendSync('sign-tx', data)
-            return onAutograph(res)
-          }).catch(() => {
-            message.error('签名请求失败')
-            return false
+            const arg = ipcRenderer.sendSync('sign-tx', data)
+            if (arg && arg.data && arg.data !== '{}' && !arg.errorMsg) {
+              const onAutograph = (rawTx, id, blockchain) => {
+                let api = blockchain === 'ETHEREUM' ? ethAutograph : btcAutograph;
+                fetch(api({id, rawTx})).then(() => {
+                  if (selectedRowKeys.length > k + 1) {
+                    goQian(k + 1)
+                  } else {
+                    message.success('签名成功')
+                    onPageChange(1)
+                  }
+                })
+              }
+              onAutograph(arg.data, data.id, data.blockchain)
+            } else {
+              message.error(arg.errorMsg);
+            }
           })
-        })
+        }
+        goQian(0)
       } else {
         message.warning('请至少选择1个交易')
       }
