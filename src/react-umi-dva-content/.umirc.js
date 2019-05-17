@@ -7,9 +7,8 @@ export default {
     ['umi-plugin-react', {
       antd: true,
       dva: true,
-      dynamicImport: false,
       title: '链付Keystore',
-      dll: false,
+      dll: true,
 
       routes: {
         exclude: [
@@ -21,5 +20,7 @@ export default {
         ],
       }
     }]
-  ]
+  ],
+  history: 'hash',
+  publicPath: './'
 }
