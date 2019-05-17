@@ -23,7 +23,6 @@ export default (res) => {
                 'Content-Type': 'application/json;charset=UTF-8',
                 'Accept': 'application/json, text/plain'
               },
-              timeout: 16000,
               transformResponse: [function (data) {
                 //  响应前对数据进行更改
               }]

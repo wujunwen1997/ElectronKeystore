@@ -8,12 +8,14 @@ import PropTypes from 'prop-types';
 import {timeFormat, isNumber} from '@/utils'
 import Link from "umi/link";
 import fetch from '@/api/config/fetch.js'
-import errorMsg from "@/utils/errorMsg.js";
 import {ipcRenderer} from "../../config/Electron";
 import {getEthDetail, getBtcDetail, btcAutograph, ethAutograph} from '@/api/signatureTransaction'
 
 @connect(({ home, loading }) => ({ home, loading }))
 class HomeComponent extends Component {
+  state = {
+    loading: false
+  }
   render() {
     const {home, loading, location, dispatch} = this.props;
     const { query, pathname } = location;
@@ -82,6 +84,7 @@ class HomeComponent extends Component {
         const goQian = (k) => {
           let u = selectedRowKeys[k]
           let api = u.blockchain === 'ETH' ? getEthDetail : getBtcDetail;
+          this.setState({loading: true})
           fetch(api({id: u.id})).then((data) => {
             const arg = ipcRenderer.sendSync('sign-tx', data)
             if (arg && arg.data && arg.data !== '{}' && !arg.errorMsg) {
@@ -92,6 +95,7 @@ class HomeComponent extends Component {
                     goQian(k + 1)
                   } else {
                     message.success('签名成功')
+                    this.setState({loading: false})
                     onPageChange(1)
                   }
                 })
@@ -99,7 +103,10 @@ class HomeComponent extends Component {
               onAutograph(arg.data, data.id, data.blockchain)
             } else {
               message.error(arg.errorMsg);
+              this.setState({loading: false})
             }
+          }).catch(() => {
+            this.setState({loading: false})
           })
         }
         goQian(0)
@@ -133,7 +140,8 @@ class HomeComponent extends Component {
               {
                 parseInt(total) > 0 && (
                   <div>
-                    <Button type="primary" size={'small'} className={[s.autograph, s.newBtn].join(' ')} onClick={moreAutograph}>批量签名</Button>
+                    <Button type="primary" size={'small'} className={[s.autograph, s.newBtn].join(' ')}
+                            onClick={moreAutograph} load={this.state.loading}>批量签名</Button>
                   </div>
                 )
               }

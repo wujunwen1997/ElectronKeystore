@@ -53,7 +53,7 @@ class Login extends Component {
       <div className={s.login}>
         <div className={s.title}>
           <img src={logo} alt={''}></img>
-          登录链付钱包
+          登录Keystore
         </div>
         <Form onSubmit={this.handleSubmit} className="login-form" layout={'horizontal'} >
           {

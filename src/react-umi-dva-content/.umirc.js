@@ -8,7 +8,7 @@ export default {
       antd: true,
       dva: true,
       dynamicImport: false,
-      title: '链付钱包',
+      title: '链付Keystore',
       dll: false,
 
       routes: {

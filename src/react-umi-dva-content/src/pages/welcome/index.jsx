@@ -9,7 +9,7 @@ class Welcome extends Component {
         <div className={s.log}>
           <p className={s.tle}>
             <i className='iconfont iconlogo'></i>
-            <span>登录链付钱包</span>
+            <span>登录链付Keystore</span>
           </p>
           <Button block className={s.btn}><Link to='/register/createWallet'>创建钱包</Link></Button>
           <Button block className={s.btn}><Link to='/register/importWallet'>导入钱包</Link></Button>
