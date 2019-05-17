@@ -549,10 +549,18 @@ export class Wallet {
         self.ipcMain.on('sign-tx', function (event, data) {
             try {
                 let bcryptochain = undefined;
+                let getChainparamsFuncName = 'get_chainparams';
                 if (data.blockchain === 'BITCOIN') {
                     bcryptochain = 'btc';
-                } else if (data.blockchain === 'RCOIN' || data.blockchain === 'ECOIN') {
+                } if (data.blockchain === 'BITCOINCASH') {
+                    bcryptochain = 'bch';
+                } if (data.blockchain === 'LITECOIN') {
+                    bcryptochain = 'ltc';
+                } else if (data.blockchain === 'RCOIN') {
                     bcryptochain = 'rcoin';
+                } else if (data.blockchain === 'ECOIN') {
+                    bcryptochain = 'rcoin';
+                    getChainparamsFuncName = 'get_ecoin_chainparams';
                 } else if (data.blockchain === 'ETHEREUM') {
                     bcryptochain = 'eth';
                 }
@@ -564,9 +572,12 @@ export class Wallet {
                     let inputs = [];
                     let keys = [];
                     data.inputs.forEach(function (input) {
-                        let key = self.findKey(input.address, input.hdPath);
-                        if (key !== undefined) {
-                            keys.push(key);
+                        const result = Wallet.decodeBlockchainAddress(bcryptochain, input.address, getChainparamsFuncName);
+                        if (result !== undefined) {
+                            let key = self.findKey(bcryptochain, result.hash, input.hdPath);
+                            if (key !== undefined) {
+                                keys.push(key);
+                            }
                         }
                         inputs.push({
                             txid: input.txHash,
@@ -663,7 +674,10 @@ export class Wallet {
 
     decodeWif(wif) {
         // 每个链的每个网络都逐个尝试
-        let result = this.decodeBlockchainWif('btc', wif);
+        let result = this.decodeBlockchainWif('btc', wif); // btc和bch导入wif的逻辑是一样的
+        if (result === undefined) {
+            result = this.decodeBlockchainWif('ltc', wif);
+        }
         if (result === undefined) {
             result = this.decodeBlockchainWif('rcoin', wif); // rcoin和ecoin导入wif的逻辑是一样的
         }
@@ -735,6 +749,12 @@ export class Wallet {
 
     static decodeAddress(address) {
         let result = Wallet.decodeBlockchainAddress('btc', address);
+        if (result === undefined) {
+            result = Wallet.decodeBlockchainAddress('bch', address);
+        }
+        if (result === undefined) {
+            result = Wallet.decodeBlockchainAddress('ltc', address);
+        }
         if (result === undefined) {
             result = Wallet.decodeBlockchainAddress('rcoin', address);
         }
@@ -822,10 +842,7 @@ export class Wallet {
         }
     }
 
-    findKey(address, hdPath) {
-        const result = Wallet.decodeAddress(address);
-        const hash = result.hash;
-        const blockchain = result.blockchain;
+    findKey(blockchain, hash, hdPath) {
         let key = this.findSingleKey(hash, blockchain);
         if (key === undefined) {
             if (hdPath && hdPath !== '') {
