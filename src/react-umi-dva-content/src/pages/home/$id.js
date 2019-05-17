@@ -141,7 +141,7 @@ class HomeComponent extends Component {
                 parseInt(total) > 0 && (
                   <div>
                     <Button type="primary" size={'small'} className={[s.autograph, s.newBtn].join(' ')}
-                            onClick={moreAutograph} load={this.state.loading}>批量签名</Button>
+                            onClick={moreAutograph} loading={this.state.loading}>批量签名</Button>
                   </div>
                 )
               }
