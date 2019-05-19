@@ -5,6 +5,7 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 import installExtension, { REACT_DEVELOPER_TOOLS } from 'electron-devtools-installer';
 import {Wallet} from './wallet';
 import {Gateway} from './gateway';
+import setDefaultApplicationMenu from './menu'
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -49,6 +50,9 @@ const createWindow = async () => {
     // when you should delete the corresponding element.
     mainWindow = null;
   });
+
+  // Create the Application's main menu
+  setDefaultApplicationMenu();
 };
 
 // Make this app a single instance app.
