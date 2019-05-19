@@ -22,5 +22,6 @@ export default {
     }]
   ],
   history: 'hash',
-  publicPath: './'
+  publicPath: './',
+  outputPath: '../render'
 }

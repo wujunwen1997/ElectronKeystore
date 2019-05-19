@@ -39,7 +39,7 @@ const createWindow = async () => {
     require('devtron').install();
   } else {
     // and load the index.html of the app.
-    mainWindow.loadURL(`file://${__dirname}/react-umi-dva-content/dist/index.html`);
+    mainWindow.loadURL(`file://${__dirname}/render/index.html`);
   }
 
   // Emitted when the window is closed.

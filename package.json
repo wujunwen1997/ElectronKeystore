@@ -1,8 +1,8 @@
 {
-  "name": "chainspay-wallet",
-  "productName": "Chainspay Wallet",
+  "name": "chainspay-keystore",
+  "productName": "链付Keystore",
   "version": "1.0.0",
-  "description": "Chainspay Wallet is a batch key manager and tx singer",
+  "description": "Chainspay keystore is a batch key manager and tx singer",
   "main": "src/index.js",
   "scripts": {
     "start": "electron-forge start",
@@ -26,28 +26,28 @@
         ]
       },
       "electronPackagerConfig": {
-        "packageManager": "npm",
         "ignore": [
-          ".idea",
           "src/react-umi-dva-content",
-          ".*\\.wallet"
+          ".*\\.wallet",
+          ".*\\.config",
+          "package-lock.json",
+          "README.md",
+          "yarn.lock",
+          "yarn-error.log"
         ],
         "icon": "assets/app-icon/app"
       },
       "electronWinstallerConfig": {
-        "name": "chainspay_wallet"
       },
       "electronInstallerDMG": {
         "background": "assets/dmg/background.png",
-        "icon": "assets/dmg/title.icns"
+        "icon": "assets/app-icon/app.icns"
       },
       "github_repository": {
         "owner": "",
         "name": ""
       },
       "windowsStoreConfig": {
-        "packageName": "",
-        "name": "chainspaywallet"
       }
     }
   },
