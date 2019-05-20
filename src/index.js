@@ -7,6 +7,7 @@ import {Wallet} from './wallet';
 import {Gateway} from './gateway';
 import setDefaultApplicationMenu from './menu'
 
+if(require('electron-squirrel-startup')) app.quit();
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;

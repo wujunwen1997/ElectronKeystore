@@ -11,7 +11,7 @@ export default {
     coin: ['BTC'],
     selectedRowKeys: [],
     navList: {
-      BTC: 0, BCH: 0, ETH: 0, LTC: 0, RCO: 0, ECO: 0
+      BTC: 0, BCH: 0, ETH: 0, LTC: 0, RCOIN: 0, ECOIN: 0
     }
   },
   reducers: {
@@ -39,10 +39,10 @@ export default {
         case 'LTC':
           name = 'LITECOIN';
           break;
-        case 'RCO':
+        case 'RCOIN':
           name = 'RCOIN';
           break;
-        case 'ECO':
+        case 'ECOIN':
           name = 'ECOIN';
           break;
         default:
@@ -66,7 +66,7 @@ export default {
     * getNavTotal({ payload }, { call, put }) {
       const data = yield call(fetch, getNavTotal());
       if (data && data.length > 0) {
-        const obj = {BTC: 0, BCH: 0, ETH: 0, LTC: 0, RCO: 0, ECO: 0}
+        const obj = {BTC: 0, BCH: 0, ETH: 0, LTC: 0, RCOIN: 0, ECOIN: 0}
         Object.keys(obj).forEach(k => {
           data.forEach(u => {
             if (k === 'BTC' && u.blockchain === 'BITCOIN') {
@@ -77,10 +77,10 @@ export default {
               obj.ETH = u.number
             } else if (k === 'LTC' && u.blockchain === 'LITECOIN') {
               obj.LTC = u.number
-            } else if (k === 'RCO' && u.blockchain === 'RCOIN') {
-              obj.RCO = u.number
-            } else if (k === 'ECO' && u.blockchain === 'ECOIN') {
-              obj.ECO = u.number
+            } else if (k === 'RCOIN' && u.blockchain === 'RCOIN') {
+              obj.RCOIN = u.number
+            } else if (k === 'ECOIN' && u.blockchain === 'ECOIN') {
+              obj.ECOIN = u.number
             }
           })
         })

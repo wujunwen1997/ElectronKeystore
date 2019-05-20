@@ -41,19 +41,19 @@ class HomeComponent extends Component {
         dataIndex: 'amount',
       },
       {
-        title: '付款',
+        title: '输入',
         dataIndex: 'input',
         render: (e, r) =>
           (<span>
-            {isNumber(e) ? `${e}个地址` : e}
+            {isNumber(e) ? `${e}个输入` : e}
           </span>)
       },
       {
-        title: '收款',
+        title: '输出',
         dataIndex: 'output',
         render: (e, r) =>
           (<span>
-            {isNumber(e) ? `${e}个地址` : e}
+            {isNumber(e) ? `${e}个输出` : e}
           </span>)
       },
       {

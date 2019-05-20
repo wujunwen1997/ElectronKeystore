@@ -66,7 +66,7 @@ class AddressManagementComponent extends Component {
     }
     const delAddress = (key) => {
       confirm({
-        title: '确认删除此地址?',
+        title: '确认删除?',
         content: key,
         okText: '确认',
         okType: 'danger',

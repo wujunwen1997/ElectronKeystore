@@ -21,7 +21,7 @@ class RouterComponent extends Component {
     const {blockchain, createTime, amount, fee, inputs, outputs, platformCoin} = transactionMsg
     const seeAllAddress = () => {
       let obj = {}
-      obj.moreText = moreText === '显示所有地址' ? '收起所有地址' : '显示所有地址'
+      obj.moreText = moreText === '显示所有地址' ? '收起输入输出' : '显示输入输出'
       inputs.length > 6 && (obj.inputArr = inputArr.length < 7 ? inputs : inputs.slice(0,6))
       outputs.length > 6 && (obj.outputArr = outputArr.length < 7 ? outputs : outputs.slice(0,6))
       dispatch({
@@ -77,9 +77,9 @@ class RouterComponent extends Component {
             </li>
           </ul>
           <div className={s.amount } style={{'marginTop': '40px'}}>
-            <div><p>付款地址</p></div>
+            <div><p>输入</p></div>
             <div className={s.icon}></div>
-            <div><p>收款地址</p></div>
+            <div><p>输出</p></div>
           </div>
           <div className={[s.amount, s.maxHeight, moreText !== '显示所有地址' && s.max].join(' ') }>
             <div className={s.putGet}>

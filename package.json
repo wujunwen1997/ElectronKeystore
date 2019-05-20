@@ -39,6 +39,9 @@
         "icon": "assets/app-icon/app"
       },
       "electronWinstallerConfig": {
+        "setupIcon": "assets/app-icon/app.ico",
+        "loadingGif": "assets/dmg/loading.gif",
+        "iconUrl": "https://chainsdownloads.oss-cn-hangzhou.aliyuncs.com/software/app.ico"
       },
       "electronInstallerDMG": {
         "background": "assets/dmg/background.png",
