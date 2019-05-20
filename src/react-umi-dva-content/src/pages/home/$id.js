@@ -1,5 +1,5 @@
 import React, {Component, Fragment} from 'react'
-import {Table, Button, Pagination, message} from 'antd';
+import {Table, Button, Pagination, message, Modal} from 'antd';
 import {connect} from "dva";
 import s from './index.scss';
 import router from "umi/router";
@@ -10,6 +10,8 @@ import Link from "umi/link";
 import fetch from '@/api/config/fetch.js'
 import {ipcRenderer} from "../../config/Electron";
 import {getEthDetail, getBtcDetail, btcAutograph, ethAutograph} from '@/api/signatureTransaction'
+
+const confirm = Modal.confirm;
 
 @connect(({ home, loading }) => ({ home, loading }))
 class HomeComponent extends Component {
@@ -81,35 +83,40 @@ class HomeComponent extends Component {
     };
     const moreAutograph = () => {
       if (selectedRowKeys && selectedRowKeys.length > 0) {
-        const goQian = (k) => {
-          let u = selectedRowKeys[k]
-          let api = u.blockchain === 'ETH' ? getEthDetail : getBtcDetail;
-          this.setState({loading: true})
-          fetch(api({id: u.id})).then((data) => {
-            const arg = ipcRenderer.sendSync('sign-tx', data)
-            if (arg && arg.data && arg.data !== '{}' && !arg.errorMsg) {
-              const onAutograph = (rawTx, id, blockchain) => {
-                let api = blockchain === 'ETHEREUM' ? ethAutograph : btcAutograph;
-                fetch(api({id, rawTx})).then(() => {
-                  if (selectedRowKeys.length > k + 1) {
-                    goQian(k + 1)
-                  } else {
-                    message.success('签名成功')
-                    this.setState({loading: false})
-                    onPageChange(1)
+        confirm({
+          title: '确认此批量操作?',
+          onOk() {
+            const goQian = (k) => {
+              let u = selectedRowKeys[k]
+              let api = u.blockchain === 'ETH' ? getEthDetail : getBtcDetail;
+              this.setState({loading: true})
+              fetch(api({id: u.id})).then((data) => {
+                const arg = ipcRenderer.sendSync('sign-tx', data)
+                if (arg && arg.data && arg.data !== '{}' && !arg.errorMsg) {
+                  const onAutograph = (rawTx, id, blockchain) => {
+                    let api = blockchain === 'ETHEREUM' ? ethAutograph : btcAutograph;
+                    fetch(api({id, rawTx})).then(() => {
+                      if (selectedRowKeys.length > k + 1) {
+                        goQian(k + 1)
+                      } else {
+                        message.success('签名成功')
+                        this.setState({loading: false})
+                        onPageChange(1)
+                      }
+                    })
                   }
-                })
-              }
-              onAutograph(arg.data, data.id, data.blockchain)
-            } else {
-              message.error(arg.errorMsg);
-              this.setState({loading: false})
+                  onAutograph(arg.data, data.id, data.blockchain)
+                } else {
+                  message.error(arg.errorMsg);
+                  this.setState({loading: false})
+                }
+              }).catch(() => {
+                this.setState({loading: false})
+              })
             }
-          }).catch(() => {
-            this.setState({loading: false})
-          })
-        }
-        goQian(0)
+            goQian(0)
+          }
+        });
       } else {
         message.warning('请至少选择1个交易')
       }
