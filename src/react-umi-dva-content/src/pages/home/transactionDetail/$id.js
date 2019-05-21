@@ -18,7 +18,7 @@ class RouterComponent extends Component {
   render() {
     const {transactionDetail, loading, dispatch} = this.props
     const {inputArr, outputArr, moreText, transactionMsg} = transactionDetail
-    const {blockchain, createTime, amount, fee, inputs, outputs, platformCoin} = transactionMsg
+    const {blockchain, name, createTime, amount, fee, inputs, outputs, platformCoin} = transactionMsg
     const seeAllAddress = () => {
       let obj = {}
       obj.moreText = moreText === '显示输入输出' ? '收起输入输出' : '显示输入输出'
@@ -61,7 +61,7 @@ class RouterComponent extends Component {
           <ul className={s.top}>
             <li>
               <p>币种</p>
-              <span>{blockchain}</span>
+              <span>{name}</span>
             </li>
             <li>
               <p>交易时间</p>
