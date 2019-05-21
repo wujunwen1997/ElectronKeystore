@@ -33,7 +33,7 @@ class HomeComponent extends Component {
       {
         title: '时间',
         dataIndex: 'createTime',
-        width: 90,
+        width: 200,
         render: (text) => (
           <span>
             {timeFormat(text)}

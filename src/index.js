@@ -16,8 +16,8 @@ const isDevMode = process.execPath.match(/[\\/]electron/);
 
 const createWindow = async () => {
   const windowOptions = {
-    width: 1080,
-    minWidth: 1080,
+    width: 1200,
+    minWidth: 1200,
     height: 640,
     minHeight: 640,
     // frame: false,
