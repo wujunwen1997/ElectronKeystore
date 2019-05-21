@@ -85,9 +85,9 @@ class ConfigureComponent extends Component {
             <div className={s.keepWay}>
               <label></label>
               <div style={{width: '80px'}}>官网</div>
-              <div style={{color: '#077BE7'}}>https://test.chainspay.com/index.html</div>
+              <div style={{color: '#077BE7'}}>https://chainspay.com</div>
             </div>
-            <div><label>当前版本</label><span>V1.0</span></div>
+            <div><label>当前版本</label><span>V1.0.0</span></div>
           </div>
         </div>
       </div>
