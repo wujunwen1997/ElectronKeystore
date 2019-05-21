@@ -5,7 +5,7 @@ import s from './index.scss';
 import router from "umi/router";
 import { stringify } from 'qs'
 import PropTypes from 'prop-types';
-import {timeFormat, isNumber} from '@/utils'
+import {timeFormat, isNumber, filterLastZore} from '@/utils'
 import Link from "umi/link";
 import fetch from '@/api/config/fetch.js'
 import {ipcRenderer} from "../../config/Electron";
@@ -27,11 +27,13 @@ class HomeComponent extends Component {
     const columns = [
       {
         title: '币种',
-        dataIndex: 'symbol'
+        dataIndex: 'symbol',
+        width: 70,
       },
       {
         title: '时间',
         dataIndex: 'createTime',
+        width: 90,
         render: (text) => (
           <span>
             {timeFormat(text)}
@@ -41,6 +43,7 @@ class HomeComponent extends Component {
       {
         title: '金额',
         dataIndex: 'amount',
+        render: (e, r) => (<span>{filterLastZore(e)}</span>)
       },
       {
         title: '输入',

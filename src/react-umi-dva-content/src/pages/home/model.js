@@ -84,9 +84,15 @@ export default {
             }
           })
         })
+        let newState = {}
+        if (payload === 'undefined') {
+          newState = {navList: obj}
+        } else {
+          newState = {navList: obj, coin: [payload]}
+        }
         yield put({
           type: 'querySuccess',
-          payload: {navList: obj},
+          payload: newState,
         })
       }
     },
@@ -104,7 +110,7 @@ export default {
     setupTotal({ dispatch, history }) {
       return history.listen(({ pathname, query }) => {
         if (pathMatchRegexp('/home/transactionDetail/:id', pathname)) {
-          dispatch({ type: 'getNavTotal'})
+          dispatch({ type: 'getNavTotal', payload: query && query.blockchain})
         }
       })
     }

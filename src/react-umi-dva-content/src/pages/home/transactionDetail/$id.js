@@ -69,11 +69,11 @@ class RouterComponent extends Component {
             </li>
             <li>
               <p>交易金额</p>
-              <span>{amount} {platformCoin}</span>
+              <span>{filterLastZore(amount)} {platformCoin}</span>
             </li>
             <li>
               <p>网络手续费</p>
-              <span>{fee} {platformCoin}</span>
+              <span>{filterLastZore(fee)} {platformCoin}</span>
             </li>
           </ul>
           <div className={s.amount } style={{'marginTop': '40px'}}>
@@ -85,32 +85,36 @@ class RouterComponent extends Component {
             <div className={s.putGet}>
               <ul>
                 {
-                  inputArr.map((u, index) => (
-                    <li key={index}>
-                      {u.address}
-                      &nbsp;<span className={s.address}>{filterLastZore(u.amount)}&nbsp; {platformCoin}</span>
+                  inputArr && inputArr.map((u, index) => (
+                    <li key={index} style={!u.address ? {textAlign: 'center'} : {textAlign: 'left'}}>
+                      {u.address || u}
+                      &nbsp;{
+                      u.amount && <span className={s.address}>{filterLastZore(u.amount)}&nbsp; {platformCoin}</span>
+                    }
                     </li>
                   ))
                 }
               </ul>
               {
-                inputArr.length !== inputs.length && inputs && inputs.length > 6 && <span className={s.more}>......</span>
+                inputArr && inputArr.length > 1 && inputArr.length !== inputs.length && inputs && inputs.length > 6 && <span className={s.more}>......</span>
               }
             </div>
             <div className={s.icon}><Icon type="right-circle" /></div>
             <div className={s.putGet}>
               <ul>
                 {
-                  outputArr.map((u, index) => (
-                    <li key={index}>
-                      {u.address}
-                      &nbsp;<span className={s.address}>{filterLastZore(u.amount)} &nbsp;{platformCoin}</span>
+                  outputArr && outputArr.map((u, index) => (
+                    <li key={index} style={!u.address ? {textAlign: 'center'} : {textAlign: 'left'}}>
+                      {u.address || u}
+                      &nbsp;{
+                      u.amount && <span className={s.address}>{filterLastZore(u.amount)} &nbsp;{platformCoin}</span>
+                    }
                     </li>
                   ))
                 }
               </ul>
               {
-                outputArr.length !== outputs.length && outputs && outputs.length > 6 && <span className={s.more}>......</span>
+                outputArr &&  outputArr.length > 1 && outputArr.length !== outputs.length && outputs && outputs.length > 6 && <span className={s.more}>......</span>
               }
             </div>
           </div>
