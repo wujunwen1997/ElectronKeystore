@@ -34,7 +34,9 @@ class RouterComponent extends Component {
       fetch(api({id, rawTx})).then(() => {
           message.success('签名成功')
           router.goBack()
-        })
+        }).catch(() => {
+        message.success('签名失败')
+      })
     }
     const autograph = () => {
       confirm({
