@@ -1,6 +1,6 @@
 import React, {Component} from 'react'
 import s from './index.scss'
-import { Form, Input, Button, message } from 'antd';
+import { Form, Input, Button, message, Select, AutoComplete } from 'antd';
 import {checkToken, checkAesKey} from '@/utils/index.js'
 import {ipcRenderer} from '@/config/Electron.js'
 import {connect} from "dva";
@@ -8,8 +8,13 @@ import router from "umi/router";
 import errorMsg from "@/utils/errorMsg.js";
 import PropTypes from 'prop-types';
 
+const Option = Select.Option;
+
 @connect((userModel) => ({userModel}))
 class ConfigureComponent extends Component {
+  state = {
+    dataSource: [],
+  };
   submit = () => {
     this.props.form.validateFields(
       (err) => {
@@ -34,9 +39,18 @@ class ConfigureComponent extends Component {
     errorMsg(arg, () => {message.success('保存成功')})
   }
   render() {
-    const {userModel} = this.props
-    const {walletName, walletPath, url, aesKey, aesToken} = userModel.userModel
-    const { getFieldDecorator } = this.props.form;
+    const {userModel, form} = this.props;
+    const {walletName, walletPath, url, aesKey, aesToken} = userModel.userModel;
+    const { getFieldDecorator, setFieldsValue } = form;
+    const onSelect = (val) => {
+      setFieldsValue({url: val})
+    }
+    const selectAfter = (
+      <Select className={s.select} value={''} onSelect={onSelect}>
+        <Option value="https://customer-test.chainspay.com/api/gateway">https://customer-test.chainspay.com/api/gateway</Option>
+        <Option value="https://customer.chainspay.com/api/gateway">https://customer.chainspay.com/api/gateway</Option>
+      </Select>
+    );
     return (
       <div className={s.configure}>
         <div className={s.textGroup}>
@@ -75,7 +89,7 @@ class ConfigureComponent extends Component {
                 initialValue: url,
                 rules: [{ required: true, message: '请输入网关信息'}],
               })(
-                <Input placeholder="请输入网关"/>
+                <Input placeholder="请输入网关" addonAfter={selectAfter}/>
               )}
             </Form.Item>
             <Button type="primary" size={'small'} className={s.saveBtn} onClick={this.submit}>保存</Button>

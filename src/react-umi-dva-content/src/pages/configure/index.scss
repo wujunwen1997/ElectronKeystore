@@ -43,3 +43,10 @@
     >div{float: left;color: #666666}
   }
 }
+.select{
+background: white;
+}
+:global .ant-select-dropdown{
+  width: 350px !important;left: 137px !important;
+  li{padding-left: 11px !important;}
+}

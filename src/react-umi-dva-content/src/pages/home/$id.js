@@ -89,6 +89,8 @@ class HomeComponent extends Component {
         let that = this;
         confirm({
           title: '确认此批量操作?',
+          okText: '确认',
+          cancelText: '取消',
           onOk() {
             const goQian = (k) => {
               let u = selectedRowKeys[k]
