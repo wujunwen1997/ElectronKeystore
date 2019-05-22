@@ -86,13 +86,14 @@ class HomeComponent extends Component {
     };
     const moreAutograph = () => {
       if (selectedRowKeys && selectedRowKeys.length > 0) {
+        let that = this;
         confirm({
           title: '确认此批量操作?',
           onOk() {
             const goQian = (k) => {
               let u = selectedRowKeys[k]
               let api = u.blockchain === 'ETH' ? getEthDetail : getBtcDetail;
-              this.setState({loading: true})
+              that.setState({loading: true})
               fetch(api({id: u.id})).then((data) => {
                 const arg = ipcRenderer.sendSync('sign-tx', data)
                 if (arg && arg.data && arg.data !== '{}' && !arg.errorMsg) {
@@ -103,7 +104,7 @@ class HomeComponent extends Component {
                         goQian(k + 1)
                       } else {
                         message.success('签名成功')
-                        this.setState({loading: false})
+                        that.setState({loading: false})
                         onPageChange(1)
                       }
                     })
@@ -111,10 +112,10 @@ class HomeComponent extends Component {
                   onAutograph(arg.data, data.id, data.blockchain)
                 } else {
                   message.error(arg.errorMsg);
-                  this.setState({loading: false})
+                  that.setState({loading: false})
                 }
               }).catch(() => {
-                this.setState({loading: false})
+                that.setState({loading: false})
               })
             }
             goQian(0)
