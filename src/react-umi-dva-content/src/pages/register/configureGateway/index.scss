@@ -12,4 +12,9 @@
     }
   }
   padding: 23px;
+  :global .ant-input-group-addon{background: none}
+  :global .ant-select-selection-selected-value{color: #848484;}
+  .select{
+    width: 88px !important;
+  }
 }

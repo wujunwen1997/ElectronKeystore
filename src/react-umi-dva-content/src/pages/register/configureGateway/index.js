@@ -1,11 +1,13 @@
 import React, {Component} from 'react'
 import s from './index.scss'
-import {Form, Input, Button, message} from 'antd';
+import {Form, Input, Button, message, Select} from 'antd';
 import { connect } from 'dva'
 import {checkToken, checkAesKey} from '@/utils/index.js'
 import {ipcRenderer} from '@/config/Electron.js'
 import router from 'umi/router';
 import errorMsg from "@/utils/errorMsg.js";
+
+const Option = Select.Option;
 
 @connect()
 class RouterComponent extends Component {
@@ -30,7 +32,16 @@ class RouterComponent extends Component {
   }
   render() {
     const { form } = this.props;
-    const { getFieldDecorator } = form;
+    const { getFieldDecorator, setFieldsValue } = form;
+    const onSelect = (val) => {
+      setFieldsValue({url: val})
+    }
+    const selectAfter = (
+      <Select className={s.select} value={'网关'} onSelect={onSelect} dropdownMatchSelectWidth={false}>
+        <Option value="https://customer-test.chainspay.com/api/gateway">https://customer-test.chainspay.com/api/gateway</Option>
+        <Option value="https://customer.chainspay.com/api/gateway">https://customer.chainspay.com/api/gateway</Option>
+      </Select>
+    );
     return (
       <div className={s.create}>
         <p className={s.title}>配置网关</p>
@@ -53,7 +64,7 @@ class RouterComponent extends Component {
             {getFieldDecorator('url', {
               rules: [{ required: true, message: '请输入网关信息'}],
             })(
-              <Input prefix='网关'  placeholder="请输入网关"/>
+              <Input placeholder="请输入网关" addonBefore={selectAfter}/>
             )}
           </Form.Item>
           <Form.Item>

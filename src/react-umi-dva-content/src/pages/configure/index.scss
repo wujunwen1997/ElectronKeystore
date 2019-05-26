@@ -44,9 +44,9 @@
   }
 }
 .select{
-background: white;
+  background: white;
 }
 :global .ant-select-dropdown{
-  width: 350px !important;left: 137px !important;
   li{padding-left: 11px !important;}
 }
+.option{width: 350px !important;left: 137px !important}

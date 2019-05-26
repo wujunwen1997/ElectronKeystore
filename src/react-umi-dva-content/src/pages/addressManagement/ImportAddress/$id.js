@@ -103,7 +103,7 @@ class Sider extends Component {
                         '在此粘贴JSON格式的私钥字符串，或从文件载入。'}/>
             <div className={s.bot}>
                 <Button type={'primary'} size={'small'} className={s.newBtn} onClick={fileImport}>从文件载入</Button>
-                {!isWif && <Input size="small" value={password} onChange={changeInput} placeholder="请在此输入解锁密码" />}
+                {!isWif && <Input size="small" value={password} type={'password'} onChange={changeInput} placeholder="请在此输入解锁密码" />}
                 <Button type={'primary'} size={'small'} className={s.newBtn} onClick={this.goBack}>返回</Button>
                 <Button type={'primary'} size={'small'} className={s.importBtn} onClick={onImport}>导入</Button>
             </div>
