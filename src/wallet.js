@@ -8,15 +8,76 @@ const dateFormat = require('dateformat');
 
 export class Wallet {
 
-    constructor(app, ipcMain, isDevMode, gateway) {
+    constructor(app, ipcMain, isDevMode) {
         this.app = app;
         this.ipcMain = ipcMain;
         this.isDevMode = isDevMode;
-        this.gateway = gateway;
     }
 
     addListeners() {
         const self = this;
+
+        /*
+        获取网关配置
+        返回结果result, 如果data为null则表示网关配置不存在或者获取失败，errorMsg会包含错误信息
+        {
+          data: {
+            aesKey:'',
+            token:'',
+            url:''
+          },
+          errorMsg: null
+        }
+         */
+        self.ipcMain.on('get-gateway', function (event) {
+            if (self.gateway !== undefined) {
+                event.returnValue = {data: self.gateway, errorMsg: null};
+            } else {
+                event.returnValue = {data: null, errorMsg: '网关配置不存在'};
+            }
+        });
+
+        /*
+        设置网关，参数data
+        {
+         aesKey:'',
+         token:'',
+         url:''
+        }
+        返回结果result, true表示设置成功，false表示设置失败，如果设置失败errorMsg会包含失败原因
+        {
+          data: true,
+          errorMsg: null
+        }
+         */
+        self.ipcMain.on('set-gateway', function (event, data) {
+            try {
+                const encryptAesKey = Wallet.encryptData(self.aesKey, data.aesKey);
+                const encryptToken = Wallet.encryptData(self.aesKey, data.token);
+                const select = self.db.prepare('SELECT * FROM gateway');
+                const selectInfo = select.get();
+                if (selectInfo === undefined) {
+                    const insert = self.db.prepare('INSERT INTO gateway VALUES (?, ?, ?)');
+                    const insertInfo = insert.run(data.url, encryptAesKey, encryptToken);
+                    if (insertInfo.changes === 1) {
+                        self.gateway = data;
+                        event.returnValue = {data: true, errorMsg: null};
+                        return;
+                    }
+                } else {
+                    const update = self.db.prepare('UPDATE gateway SET url = ?, encrypt_aes_key = ?, encrypt_token = ?');
+                    const updateInfo = update.run(data.url, encryptAesKey,encryptToken);
+                    if (updateInfo.changes === 1) {
+                        self.gateway = data;
+                        event.returnValue = {data: true, errorMsg: null};
+                        return;
+                    }
+                }
+                event.returnValue = {data: false, errorMsg: '设置网关失败'};
+            } catch (e) {
+                event.returnValue = {data: false, errorMsg: e.message};
+            }
+        });
 
         /*
         创建钱包，参数data
@@ -38,6 +99,7 @@ export class Wallet {
                     const stmt = self.db.prepare('INSERT INTO password VALUES (?, ?)');
                     const info = stmt.run(hash.toString('hex'), salt);
                     if (info.changes === 1) {
+                        self.aesKey = crypto.scryptSync(data.password, 'chainspay', 16);
                         event.returnValue = {data: true, errorMsg: null};
                     } else {
                         event.returnValue = {data: false, errorMsg: '密码保存失败'};
@@ -109,6 +171,15 @@ export class Wallet {
                         walletName:data.walletName,
                         walletPath:self.getWalletPath(data.walletName)
                     };
+                    const stmt = self.db.prepare('SELECT * FROM gateway');
+                    const info = stmt.get();
+                    if (info !== undefined) {
+                        self.gateway = {
+                            aesKey: Wallet.decryptData(self.aesKey, info.encrypt_aes_key),
+                            token: Wallet.decryptData(self.aesKey, info.encrypt_token),
+                            url: info.url
+                        };
+                    }
                 }
                 event.returnValue = result;
             } catch (e) {
@@ -177,14 +248,14 @@ export class Wallet {
          */
         self.ipcMain.on('encrypt-data', function (event, data) {
             try {
-                if (self.gateway.getGateway() === undefined) {
+                if (self.gateway === undefined) {
                     event.returnValue = {data: null, errorMsg: '网关配置不存在'};
                     return;
                 }
-                let cipher = crypto.createCipheriv('aes-128-cbc', Buffer.from(self.gateway.getGateway().aesKey, 'base64'), Buffer.alloc(16, 0));
+                let cipher = crypto.createCipheriv('aes-128-cbc', Buffer.from(self.gateway.aesKey, 'base64'), Buffer.alloc(16, 0));
                 let encrypt = cipher.update(JSON.stringify(data), 'utf8', 'base64');
                 encrypt += cipher.final('base64');
-                let body = self.gateway.getGateway().aesToken + encrypt;
+                let body = self.gateway.token + encrypt;
                 let sha1 = crypto.createHash('sha1');
                 let sig = sha1.update(body).digest('hex');
                 event.returnValue = {data: {body, sig}, errorMsg: null};
@@ -207,7 +278,7 @@ export class Wallet {
          */
         self.ipcMain.on('decrypt-data', function (event, data) {
             try {
-                if (self.gateway.getGateway() === undefined) {
+                if (self.gateway === undefined) {
                     event.returnValue = {data: null, errorMsg: '网关配置不存在'};
                     return;
                 }
@@ -217,8 +288,8 @@ export class Wallet {
                     event.returnValue = {data: null, errorMsg: '签名校验失败'};
                     return;
                 }
-                let encrypt = data.body.substring(self.gateway.getGateway().aesToken.length);
-                let decipher = crypto.createDecipheriv('aes-128-cbc', Buffer.from(self.gateway.getGateway().aesKey, 'base64'), Buffer.alloc(16, 0));
+                let encrypt = data.body.substring(self.gateway.token.length);
+                let decipher = crypto.createDecipheriv('aes-128-cbc', Buffer.from(self.gateway.aesKey, 'base64'), Buffer.alloc(16, 0));
                 let decrypt = decipher.update(encrypt, 'base64', 'utf8');
                 decrypt += decipher.final('utf8');
                 event.returnValue = {data: JSON.parse(decrypt), errorMsg: null};
@@ -631,6 +702,21 @@ export class Wallet {
         }
         this.aesKey = undefined;
         this.walletInfo = undefined;
+        this.gateway = undefined;
+    }
+
+    static encryptData(aesKey, data) {
+        let cipher = crypto.createCipheriv('aes-128-cbc', aesKey, Buffer.alloc(16, 0));
+        let encrypt = cipher.update(data, 'utf8', 'hex');
+        encrypt += cipher.final('hex');
+        return encrypt;
+    }
+
+    static decryptData(aesKey, data) {
+        let decipher = crypto.createDecipheriv('aes-128-cbc', aesKey, Buffer.alloc(16, 0));
+        let decrypt = decipher.update(data, 'hex', 'utf8');
+        decrypt += decipher.final('utf8');
+        return decrypt;
     }
 
     static checkPassword(db, password) {
@@ -660,8 +746,8 @@ export class Wallet {
         const select = this.db.prepare('SELECT * FROM key WHERE pubkey_hash = ?');
         const selectInfo = select.get(importResult.pubkeyHash);
         if (selectInfo === undefined) {
-            const insert = this.db.prepare('INSERT INTO key VALUES (?, ?, ?, ?, ?)');
-            const insertInfo = insert.run(importResult.pubkeyHash, importResult.p2shP2wpkh, importResult.encryptKey, importResult.compressed, new Date().getTime());
+            const insert = this.db.prepare('INSERT INTO key VALUES (?, ?, ?, ?, ?, ?)');
+            const insertInfo = insert.run(importResult.pubkeyHash, importResult.p2shP2wpkh, importResult.encryptKey, importResult.compressed, importResult.algorithm, new Date().getTime());
             if (insertInfo.changes === 1) {
                 return 1;
             } else {
@@ -699,7 +785,8 @@ export class Wallet {
                 encryptKey:encryptKey,
                 pubkeyHash:bcrypto[blockchain].get_outputscript_for_key(pubkey, bcrypto.P2PKH),
                 p2shP2wpkh:bcrypto[blockchain].get_outputscript_for_key(pubkey, bcrypto.P2SH),
-                compressed:key.is_compressed && key.is_compressed() ? 1 : 0
+                compressed:key.is_compressed && key.is_compressed() ? 1 : 0,
+                algorithm:null
             }
         } catch (e) {
             return undefined;
@@ -739,7 +826,8 @@ export class Wallet {
                     encryptKey:encryptKey,
                     pubkeyHash:bcrypto.eth_PublicKey.to_address(pubkey),
                     p2shP2wpkh:null,
-                    compressed:0
+                    compressed:0,
+                    algorithm:null
                 }
             }
         } catch (e) {

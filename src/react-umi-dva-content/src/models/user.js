@@ -6,7 +6,7 @@ export default {
   state: {
     url: '',
     aesKey: '',
-    aesToken: '',
+    token: '',
     walletName: '',
     walletPath: '',
     current: 'signatureTransaction'
@@ -53,9 +53,9 @@ export default {
         if (pathMatchRegexp('/configure', pathname) || pathMatchRegexp('/register/createWallet', pathname)) {
           const getGatewayResult = (arg) => {
             if (arg.data && arg.data !== '{}') {
-              dispatch({ type: 'setModel', payload: {aesKey: arg.data.aesKey, aesToken: arg.data.aesToken, url: arg.data.url}})
+              dispatch({ type: 'setModel', payload: {aesKey: arg.data.aesKey, token: arg.data.token, url: arg.data.url}})
             } else {
-              dispatch({ type: 'setModel', payload: {aesKey: '', aesToken: '', url: ''}})
+              dispatch({ type: 'setModel', payload: {aesKey: '', token: '', url: ''}})
             }
           }
           const data = ipcRenderer.sendSync("get-gateway");

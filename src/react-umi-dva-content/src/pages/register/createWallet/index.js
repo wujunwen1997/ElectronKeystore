@@ -21,14 +21,14 @@ class RouterComponent extends Component {
     const createWalletResultSuccess = () => {
       message.success('创建成功')
       const { userModel } = this.props;
-      const {aesKey, aesToken, url} = userModel;
-      (aesKey && aesKey !== '' && aesToken && aesToken !== '' && url && url !== '') ? router.push('/') : router.push('/register/configureGateway')
+      const {aesKey, token, url} = userModel;
+      (aesKey && aesKey !== '' && token && token !== '' && url && url !== '') ? router.push('/') : router.push('/register/configureGateway')
     }
     errorMsg(arg, createWalletResultSuccess)
   }
   render() {
     const { form, userModel } = this.props;
-    const {aesKey, aesToken, url} = userModel;
+    const {aesKey, token, url} = userModel;
     const { getFieldDecorator } = form;
     const surePassword = (rule, value, callback) => {
       this.props.form.getFieldsValue().password === value ? callback() : callback('两次输入密码不同')
@@ -77,7 +77,7 @@ class RouterComponent extends Component {
           </Form.Item>
           <Form.Item>
             <Button htmlType="submit" type="primary" block loading={this.state.loading}>
-              {(aesKey && aesKey !== '' && aesToken && aesToken !== '' && url && url !== '') ? '进入创建' : '下一步'}
+              {(aesKey && aesKey !== '' && token && token !== '' && url && url !== '') ? '进入创建' : '下一步'}
             </Button>
           </Form.Item>
         </Form>
@@ -89,7 +89,7 @@ class RouterComponent extends Component {
 RouterComponent.propTypes = {
   userModel: PropTypes.shape({
     aesKey: PropTypes.string,
-    aesToken: PropTypes.string,
+    token: PropTypes.string,
     url: PropTypes.string
   })
 };

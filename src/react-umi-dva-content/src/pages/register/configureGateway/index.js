@@ -43,10 +43,10 @@ class RouterComponent extends Component {
             )}
           </Form.Item>
           <Form.Item hasFeedback>
-            {getFieldDecorator('aesToken', {
+            {getFieldDecorator('token', {
               rules: [{validator: checkToken}],
             })(
-              <Input prefix='AesToken' placeholder="请输入AesToken值" />
+              <Input prefix='Token' placeholder="请输入Token值" />
             )}
           </Form.Item>
           <Form.Item hasFeedback>
