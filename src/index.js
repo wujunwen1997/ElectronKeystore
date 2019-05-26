@@ -4,7 +4,6 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import installExtension, { REACT_DEVELOPER_TOOLS } from 'electron-devtools-installer';
 import {Wallet} from './wallet';
-import {Gateway} from './gateway';
 import setDefaultApplicationMenu from './menu'
 
 if(require('electron-squirrel-startup')) app.quit();
@@ -104,10 +103,6 @@ app.on('activate', () => {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.
-
-const gateway = new Gateway(app, ipcMain, isDevMode);
-gateway.addListeners();
-
-const wallet = new Wallet(app, ipcMain, isDevMode, gateway);
+const wallet = new Wallet(app, ipcMain, isDevMode);
 wallet.addListeners();
 

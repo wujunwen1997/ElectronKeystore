@@ -40,7 +40,7 @@ class ConfigureComponent extends Component {
   }
   render() {
     const {userModel, form} = this.props;
-    const {walletName, walletPath, url, aesKey, aesToken} = userModel.userModel;
+    const {walletName, walletPath, url, aesKey, token} = userModel.userModel;
     const { getFieldDecorator, setFieldsValue } = form;
     const onSelect = (val) => {
       setFieldsValue({url: val})
@@ -79,12 +79,12 @@ class ConfigureComponent extends Component {
                 <Input placeholder="请输入Aeskey值"/>
               )}
             </Form.Item>
-            <Form.Item label="AesToken">
-              {getFieldDecorator('aesToken', {
-                rules: [{validator: checkToken}, { required: true, message: '请输入AesToken值'}],
-                initialValue: aesToken
+            <Form.Item label="Token">
+              {getFieldDecorator('token', {
+                rules: [{validator: checkToken}, { required: true, message: '请输入Token值'}],
+                initialValue: token
               })(
-                <Input placeholder="请输入AesToken值"/>
+                <Input placeholder="请输入Token值"/>
               )}
             </Form.Item>
             <Form.Item label="网关">
@@ -114,7 +114,7 @@ class ConfigureComponent extends Component {
 }
 ConfigureComponent.propTypes = {
   userModel: PropTypes.shape({
-    aesToken: PropTypes.string,
+    token: PropTypes.string,
     aesKey: PropTypes.string,
     url: PropTypes.string,
     walletPath: PropTypes.string,
