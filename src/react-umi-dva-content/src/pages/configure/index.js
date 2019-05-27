@@ -51,9 +51,6 @@ class ConfigureComponent extends Component {
         <Option value="https://customer.chainspay.com/api/gateway">https://customer.chainspay.com/api/gateway</Option>
       </Select>
     );
-    const ccc = () => {
-      router.push('/register/configureGateway')
-    }
     return (
       <div className={s.configure}>
         <div className={s.textGroup}>
@@ -96,7 +93,6 @@ class ConfigureComponent extends Component {
               )}
             </Form.Item>
             <Button type="primary" size={'small'} className={s.saveBtn} onClick={this.submit}>保存</Button>
-            <Button type="primary" size={'small'} className={s.saveBtn} onClick={ccc}>保存213123</Button>
           </div>
           <div className={s.textGroupDiv}>
             <p>版本信息</p>
