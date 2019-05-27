@@ -21,7 +21,6 @@ const createWindow = async () => {
     minHeight: 640,
     // frame: false,
     title: app.getName(),
-    // todo icon，backgroundColor需要设置
     // In Electron 5.0.0, node integration will be disabled by default.
     // To prepare for this change, set {nodeIntegration: true} in the webPreferences for this window,
     // or ensure that this window does not rely on node integration and set {nodeIntegration: false}.

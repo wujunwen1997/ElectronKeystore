@@ -670,7 +670,13 @@ export class Wallet {
                     }
                     event.returnValue = {data: bcrypto.to_hex(signInfo.rawtx), errorMsg:null};
                 } else {
-                    event.returnValue = {data: null, errorMsg: '接口尚未实现'};
+                    let key = self.findKey('eth', data.fromAddress, data.hdPath);
+                    if (key === undefined) {
+                        event.returnValue = {data: null, errorMsg:`签名失败：缺少${data.fromAddress}的key`};
+                        return;
+                    }
+                    const signed_tx = bcrypto.eth.sign_rawtransaction(bcrypto.from_hex(data.rawTx), key);
+                    event.returnValue = {data: bcrypto.to_hex(signed_tx), errorMsg:null};
                 }
             } catch (e) {
                 event.returnValue = {data: null, errorMsg: e.message};
