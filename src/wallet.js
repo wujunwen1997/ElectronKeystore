@@ -668,15 +668,17 @@ export class Wallet {
                             return;
                         }
                     }
-                    event.returnValue = {data: bcrypto.to_hex(signInfo.rawtx), errorMsg:null};
+                    event.returnValue = {data: bcrypto.to_hex(signInfo.rawtx), errorMsg: null};
                 } else {
-                    let key = self.findKey('eth', data.fromAddress, data.hdPath);
+                    // eth导入私钥存储的address是小写的
+                    let hash = data.fromAddress.toLowerCase();
+                    let key = self.findKey('eth', hash, data.hdPath);
                     if (key === undefined) {
                         event.returnValue = {data: null, errorMsg:`签名失败：缺少${data.fromAddress}的key`};
                         return;
                     }
                     const signed_tx = bcrypto.eth.sign_rawtransaction(bcrypto.from_hex(data.rawTx), key);
-                    event.returnValue = {data: bcrypto.to_hex(signed_tx), errorMsg:null};
+                    event.returnValue = {data: bcrypto.to_hex(signed_tx), errorMsg: null};
                 }
             } catch (e) {
                 event.returnValue = {data: null, errorMsg: e.message};
@@ -830,7 +832,7 @@ export class Wallet {
                 success:true,
                 data:{
                     encryptKey:encryptKey,
-                    pubkeyHash:bcrypto.eth_PublicKey.to_address(pubkey),
+                    pubkeyHash:bcrypto.eth_PublicKey.to_address(pubkey), // 格式是小写的
                     p2shP2wpkh:null,
                     compressed:0,
                     algorithm:null
@@ -855,7 +857,7 @@ export class Wallet {
         if (result === undefined) {
             result = Wallet.decodeBlockchainAddress('rcoin', address, 'get_ecoin_chainparams');
         }
-        return result !== undefined ? result : {hash:address, blockchain:'eth'};
+        return result !== undefined ? result : {hash:address.toLowerCase(), blockchain:'eth'};
     }
 
     static decodeBlockchainAddress(blockchain, address, getChainparamsFuncName = 'get_chainparams') {
@@ -988,10 +990,17 @@ export class Wallet {
                 key = key.derive(i);
             });
             let pubkey = key.get_pubkey();
-            let pubkeyhash = bcrypto[blockchain].get_outputscript_for_key(pubkey, bcrypto.P2PKH);
-            let p2shp2wpkh = bcrypto[blockchain].get_outputscript_for_key(pubkey, bcrypto.P2SH);
-            if (hash === pubkeyhash || hash === p2shp2wpkh) {
-                return key;
+            if (blockchain === 'eth') {
+                let address = bcrypto.eth_PublicKey.to_address(pubkey);
+                if (address === hash) {
+                    return key;
+                }
+            } else {
+                let pubkeyhash = bcrypto[blockchain].get_outputscript_for_key(pubkey, bcrypto.P2PKH);
+                let p2shp2wpkh = bcrypto[blockchain].get_outputscript_for_key(pubkey, bcrypto.P2SH);
+                if (hash === pubkeyhash || hash === p2shp2wpkh) {
+                    return key;
+                }
             }
         }
         return undefined;
