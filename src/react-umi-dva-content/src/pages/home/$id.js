@@ -93,8 +93,8 @@ class HomeComponent extends Component {
           cancelText: '取消',
           onOk() {
             const goQian = (k) => {
-              let u = selectedRowKeys[k]
-              let api = u.blockchain === 'ETH' ? getEthDetail : getBtcDetail;
+              let u = selectedRowKeys[k];
+              let api = coin[0] === 'ETH' ? getEthDetail : getBtcDetail;
               that.setState({loading: true})
               fetch(api({id: u.id})).then((data) => {
                 const arg = ipcRenderer.sendSync('sign-tx', data)
