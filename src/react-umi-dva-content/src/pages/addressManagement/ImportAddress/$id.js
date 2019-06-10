@@ -12,6 +12,9 @@ const { TextArea } = Input;
 
 @connect(({addressManagement}) => ({addressManagement}))
 class Sider extends Component {
+  state = {
+    loading: false
+  }
   goBack = () => {
     router.push('/addressManagement')
   };
@@ -30,7 +33,9 @@ class Sider extends Component {
     };
     //  导入
     const importWifEvent = (arg) => {
+      this.setState({loading: true})
       const success = () => {
+        this.setState({loading: false})
         const {success, fail, duplicate} = arg.data;
         let str = []
         success && success > 0 && str.push(`成功导入${success}个私钥`)
@@ -39,6 +44,7 @@ class Sider extends Component {
         message.info(str.join(', '));
       };
       const fail = () => {
+        this.setState({loading: false})
         message.error('导入WIF格式私钥失败')
       };
       errorMsg(arg, success, fail);
@@ -105,7 +111,7 @@ class Sider extends Component {
                 <Button type={'primary'} size={'small'} className={s.newBtn} onClick={fileImport}>从文件载入</Button>
                 {!isWif && <Input size="small" value={password} type={'password'} onChange={changeInput} placeholder="请在此输入解锁密码" />}
                 <Button type={'primary'} size={'small'} className={s.newBtn} onClick={this.goBack}>返回</Button>
-                <Button type={'primary'} size={'small'} className={s.importBtn} onClick={onImport}>导入</Button>
+                <Button type={'primary'} size={'small'} className={s.importBtn} onClick={onImport} loading={this.state.loading}>导入</Button>
             </div>
           </div>
     );

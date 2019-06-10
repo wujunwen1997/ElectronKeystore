@@ -19,6 +19,7 @@
         span{color: $auxiliaryColor}
         :global .ant-col{float: left}
         :global .ant-form-item-control-wrapper{
+          .ant-input-group-addon{border-color: #fff;}
           width: 350px;
           input{@include newInput}
           .ant-form-explain{position: absolute;right: -120px;top: 15px;font-size: 12px;
@@ -44,7 +45,8 @@
   }
 }
 .select{
-  background: white;
+  background: white;border: none;
+  >div{margin: 0 !important;}
 }
 :global .ant-select-dropdown{
   li{padding-left: 11px !important;}

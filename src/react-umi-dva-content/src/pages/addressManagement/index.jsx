@@ -117,7 +117,7 @@ class AddressManagementComponent extends Component {
           />
         </div>
         <Table rowSelection={rowSelection} columns={columns} dataSource={totalElements && totalElements > 0 ? elements : []} rowKey={record => record.pubkeyHash}
-               size="middle" pagination={false} />
+               size="middle" pagination={false} scroll={{ y: 320 }}/>
         <div className={s.botttom}>
           <Pagination defaultCurrent={pageNum} total={totalElements}
                       showQuickJumper showTotal={totalElements => `共 ${totalElements} 条`}

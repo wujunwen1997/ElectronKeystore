@@ -22,7 +22,7 @@ class HomeComponent extends Component {
     const {home, loading, location, dispatch} = this.props;
     const { query, pathname } = location;
     let thisLoad = loading.effects['home/detailList'];
-    const {data, selectedRowKeys} = home;
+    const {data, selectedRowKeys, coin} = home;
     const {total, list} = data;
     const columns = [
       {
@@ -67,7 +67,7 @@ class HomeComponent extends Component {
         render: (e, r) =>
           (
             <div className={s.tableBtn}>
-              <Link to={`/home/transactionDetail/${r.id}?blockchain=${r.symbol}`}><Button size={'small'} type={'primary'}>详情</Button></Link>
+              <Link to={`/home/transactionDetail/${r.id}?blockchain=${coin[0]}`}><Button size={'small'} type={'primary'}>详情</Button></Link>
             </div>
           ),
       }

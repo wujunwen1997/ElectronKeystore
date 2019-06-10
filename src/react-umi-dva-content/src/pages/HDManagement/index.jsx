@@ -107,7 +107,7 @@ class hdManagementComponent extends Component {
           <Button type={'primary'} className={s.importBtn} onClick={this.importAddress}>导入HD</Button>
         </div>
         <Table rowSelection={rowSelection} columns={columns} dataSource={totalElements && totalElements > 0 ? elements : []} rowKey={record => record.mnemonic}
-               size="middle" pagination={false} />
+               size="middle" pagination={false} scroll={{ y: 320 }}/>
         <div className={s.botttom}>
           <Pagination total={totalElements} showQuickJumper defaultCurrent={pageNum}
                       showTotal={totalElements => `共 ${totalElements} 条`}
