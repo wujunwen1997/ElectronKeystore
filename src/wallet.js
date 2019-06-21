@@ -634,6 +634,8 @@ export class Wallet {
                     getChainparamsFuncName = 'get_ecoin_chainparams';
                 } else if (data.blockchain === 'ETHEREUM') {
                     bcryptochain = 'eth';
+                } if (data.blockchain === 'DASH') {
+                    bcryptochain = 'dash';
                 }
                 if (bcryptochain === undefined) {
                     event.returnValue = {data: null, errorMsg:`${data.blockchain}的交易签名尚未支持`};
@@ -654,9 +656,9 @@ export class Wallet {
                             txid: input.txHash,
                             output: input.outpoint,
                             amount: input.amount,
-                            scriptpubkey: input.scriptPubKey,
-                            witnessScript: input.witnessScript,
-                            redeemScript: input.redeemScript,
+                            scriptPubKey: bcrypto.from_hex(input.scriptPubKey),
+                            redeemScript: input.redeemScript && bcrypto.from_hex(input.redeemScript),
+                            witnessScript: input.witnessScript && bcrypto.from_hex(input.witnessScript),
                         })
                     });
                     let signInfo = bcrypto[bcryptochain].sign_rawtransaction(bcrypto.from_hex(data.rawTx), keys, inputs);
@@ -773,6 +775,9 @@ export class Wallet {
             result = this.decodeBlockchainWif('ltc', wif);
         }
         if (result === undefined) {
+            result = this.decodeBlockchainWif('dash', wif);
+        }
+        if (result === undefined) {
             result = this.decodeBlockchainWif('rcoin', wif); // rcoin和ecoin导入wif的逻辑是一样的
         }
         return result;
@@ -791,8 +796,8 @@ export class Wallet {
             encryptKey += cipher.final('hex');
             return {
                 encryptKey:encryptKey,
-                pubkeyHash:bcrypto[blockchain].get_outputscript_for_key(pubkey, bcrypto.P2PKH),
-                p2shP2wpkh:bcrypto[blockchain].get_outputscript_for_key(pubkey, bcrypto.P2SH),
+                pubkeyHash:bcrypto.to_hex(bcrypto[blockchain].get_outputscript_for_key(pubkey, bcrypto.P2PKH)),
+                p2shP2wpkh:bcrypto.to_hex(bcrypto[blockchain].get_outputscript_for_key(pubkey, bcrypto.P2SH)),
                 compressed:key.is_compressed && key.is_compressed() ? 1 : 0,
                 algorithm:null
             }
@@ -852,6 +857,9 @@ export class Wallet {
             result = Wallet.decodeBlockchainAddress('ltc', address);
         }
         if (result === undefined) {
+            result = Wallet.decodeBlockchainAddress('dash', address);
+        }
+        if (result === undefined) {
             result = Wallet.decodeBlockchainAddress('rcoin', address);
         }
         if (result === undefined) {
@@ -865,7 +873,7 @@ export class Wallet {
             const mainNetParams = bcrypto[blockchain][getChainparamsFuncName]('main');
             const outputscript = bcrypto[blockchain].decode_address(address, mainNetParams);
             return {
-                hash:bcrypto.to_hex(outputscript.get_bytes()),
+                hash:bcrypto.to_hex(outputscript.data),
                 blockchain:blockchain,
                 netParams:mainNetParams
             };
@@ -874,7 +882,7 @@ export class Wallet {
                 const testNetParams = bcrypto[blockchain][getChainparamsFuncName]('test');
                 const outputscript = bcrypto[blockchain].decode_address(address, testNetParams);
                 return {
-                    hash:bcrypto.to_hex(outputscript.get_bytes()),
+                    hash:bcrypto.to_hex(outputscript.data),
                     blockchain:blockchain,
                     netParams:testNetParams
                 };
@@ -996,8 +1004,8 @@ export class Wallet {
                     return key;
                 }
             } else {
-                let pubkeyhash = bcrypto[blockchain].get_outputscript_for_key(pubkey, bcrypto.P2PKH);
-                let p2shp2wpkh = bcrypto[blockchain].get_outputscript_for_key(pubkey, bcrypto.P2SH);
+                let pubkeyhash = bcrypto.to_hex(bcrypto[blockchain].get_outputscript_for_key(pubkey, bcrypto.P2PKH));
+                let p2shp2wpkh = bcrypto.to_hex(bcrypto[blockchain].get_outputscript_for_key(pubkey, bcrypto.P2SH));
                 if (hash === pubkeyhash || hash === p2shp2wpkh) {
                     return key;
                 }

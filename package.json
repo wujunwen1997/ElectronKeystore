@@ -1,7 +1,7 @@
 {
   "name": "chainspay-keystore",
   "productName": "ChainspayKeystore",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Chainspay keystore is a batch key manager and tx singer",
   "main": "src/index.js",
   "scripts": {
