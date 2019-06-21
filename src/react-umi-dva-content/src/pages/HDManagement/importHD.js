@@ -20,6 +20,9 @@ class App extends Component {
           }
           errorMsg(arg, success)
         }
+        if (values.password === undefined) {
+          values.password = ''
+        }
         const data = ipcRenderer.sendSync('import-hd', values)
         getDelKeysResult(data)
       }
@@ -41,17 +44,17 @@ class App extends Component {
             )}
           </Form.Item>
           <Form.Item
-            label="密码"
+            label="密码(可选)"
           >
             {getFieldDecorator('password', {
-              rules: [{ required: true, message: '请输入您的密码' }],
+              rules: [],
             })(
               <Input type={'password'} placeholder='请输入您的密码'/>
             )}
           </Form.Item>
           <Form.Item wrapperCol={{ span: 12, offset: 5 }}>
             <Button type="primary" htmlType="submit" size={'small'}>确认</Button>
-            <Button type="primary" htmlType="submit" size={'small'} onClick={this.goBack}>返回</Button>
+            <Button type="primary" size={'small'} onClick={this.goBack}>返回</Button>
           </Form.Item>
         </Form>
       </div>
