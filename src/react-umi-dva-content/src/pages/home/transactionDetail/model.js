@@ -29,7 +29,9 @@ export default {
         outputArr = data.toAddress ? [data.toAddress] : []
       } else {
         data = yield call(fetch, getBtcDetail({id: payload.data}));
-        const {inputs, outputs} = data;
+        let {inputs, outputs} = data;
+        data.input = inputs
+        data.outputs = outputs
         inputArr = (inputs && inputs.length > 6) ? inputs.slice(0,6) : inputs;
         outputArr = (outputs && outputs.length > 6) ? outputs.slice(0,6) : outputs;
       }

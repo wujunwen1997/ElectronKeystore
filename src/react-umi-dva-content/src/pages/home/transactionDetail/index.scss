@@ -31,6 +31,17 @@
     }
     .more{font-size: 18px;float: left}
   }
+  .omni{
+    justify-content: center;align-items: center;flex-direction: row;height: 40px;background: #f8f8f8;
+    padding: 0 6px;border-radius: 4px;
+    ul {
+      margin-top: 0 !important;
+    }
+    .icon{
+      font-size: 18px !important;flex-direction: column;
+      span{font-size: 10px;margin-top: -5px}
+    }
+  }
   .maxHeight{
      position: relative;
     .putGet{
@@ -38,6 +49,7 @@
     }
   }
   .max{height: calc(100% - 146px);}
+  .maxOmni{height: calc(100% - 186px);}
   .bot{
     position: fixed;bottom: 0;right: 0;padding: 0 40px;line-height: 40px;background: white;
     :global .ant-alert-message{font-size: 12px;}

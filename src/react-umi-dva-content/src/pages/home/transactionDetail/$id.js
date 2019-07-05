@@ -14,11 +14,13 @@ const confirm = Modal.confirm;
 class RouterComponent extends Component {
   back = () => {
     router.goBack()
-  }
+  };
   render() {
-    const {transactionDetail, loading, dispatch} = this.props
-    const {inputArr, outputArr, moreText, transactionMsg} = transactionDetail
-    const {blockchain, name, createTime, amount, fee, inputs, outputs, platformCoin} = transactionMsg
+    const {transactionDetail, loading, dispatch} = this.props;
+    const {inputArr, outputArr, moreText, transactionMsg} = transactionDetail;
+    const {blockchain, name, createTime, amount, fee, inputs, outputs, platformCoin, omniTxs, symbol} = transactionMsg;
+    const classHeight = moreText !== '显示所有输入输出' && ((omniTxs && omniTxs.length > 0) ? s.maxOmni : s.max);
+    const titleMargin = (omniTxs && omniTxs.length > 0) ? {'marginTop': '30px', 'marginBottom': '10px'} : {'marginTop': '40px'};
     const seeAllAddress = () => {
       let obj = {}
       obj.moreText = moreText === '显示所有输入输出' ? '收起所有输入输出' : '显示所有输入输出'
@@ -28,7 +30,7 @@ class RouterComponent extends Component {
         type: 'transactionDetail/querySuccess',
         payload: obj
       })
-    }
+    };
     const axiosAutograph = (id, rawTx) => {
       let api = blockchain === 'ETHEREUM' ? ethAutograph : btcAutograph;
       fetch(api({id, rawTx})).then(() => {
@@ -37,7 +39,7 @@ class RouterComponent extends Component {
         }).catch(() => {
         message.success('签名失败')
       })
-    }
+    };
     const autograph = () => {
       confirm({
         title: '确认对此交易进行签名?',
@@ -56,7 +58,7 @@ class RouterComponent extends Component {
           onAutograph(data)
         },
       });
-    }
+    };
     const getDataMap = () => {
       return (
         <Fragment>
@@ -78,12 +80,28 @@ class RouterComponent extends Component {
               <span>{filterLastZore(fee)} {platformCoin}</span>
             </li>
           </ul>
-          <div className={s.amount } style={{'marginTop': '40px'}}>
+          <div className={s.amount } style={titleMargin}>
             <div><p>输入</p></div>
             <div className={s.icon}></div>
             <div><p>输出</p></div>
           </div>
-          <div className={[s.amount, s.maxHeight, moreText !== '显示所有输入输出' && s.max].join(' ') }>
+          {
+            omniTxs && omniTxs.length > 0 && <div className={[s.amount, s.omni].join(' ')}>
+              <div>
+                <ul><li>{omniTxs[0].fromAddress || ''}</li></ul>
+              </div>
+              <div className={s.icon}><Icon type="swap-right" /><span>OMNI</span></div>
+              <div>
+                <ul>
+                  <li>
+                    {omniTxs[0].toAddress || ''}
+                    &nbsp;{omniTxs[0].amount && <span className={s.address}>{filterLastZore(omniTxs[0].amount)} &nbsp;{symbol}</span>}
+                  </li>
+                </ul>
+              </div>
+            </div>
+          }
+          <div className={[s.amount, s.maxHeight, classHeight].join(' ') }>
             <div className={s.putGet}>
               <ul>
                 {
@@ -137,7 +155,7 @@ class RouterComponent extends Component {
       return (
         <Empty description={'无数据'}/>
       )
-    }
+    };
     return (
       <div className={s.graphDetail}>
         {
