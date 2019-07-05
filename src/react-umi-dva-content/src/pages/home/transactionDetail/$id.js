@@ -73,7 +73,7 @@ class RouterComponent extends Component {
             </li>
             <li>
               <p>交易金额</p>
-              <span>{filterLastZore(amount)} {platformCoin}</span>
+              <span>{filterLastZore(amount)} {symbol}</span>
             </li>
             <li>
               <p>网络手续费</p>
