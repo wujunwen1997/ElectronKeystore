@@ -68,7 +68,7 @@ class Sider extends Component {
           message.warning('请确认输入JSON私钥和解锁密码')
           return
         }
-        const data = ipcRenderer.sendSync('import-eth-json', {json: jsonText, password: password});
+        const data = ipcRenderer.sendSync('import-json', {json: jsonText, password: password});
         importJsonEvent(data);
       }
     };

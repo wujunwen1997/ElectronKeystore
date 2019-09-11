@@ -364,9 +364,9 @@ export class Wallet {
           errorMsg: null,
         }
          */
-        self.ipcMain.on('import-eth-json', function (event, data) {
+        self.ipcMain.on('import-json', function (event, data) {
             try {
-                event.returnValue = self.importEthJson(data.json, data.password);
+                event.returnValue = self.importJson(data.json, data.password);
             } catch (e) {
                 event.returnValue = {data: false, errorMsg: e.message};
             }
@@ -621,6 +621,7 @@ export class Wallet {
             try {
                 let bcryptochain = undefined;
                 let getChainparamsFuncName = 'get_chainparams';
+                let is_btc_protocol = true;
                 if (data.blockchain === 'BITCOIN') {
                     bcryptochain = 'btc';
                 } if (data.blockchain === 'BITCOINCASH') {
@@ -634,14 +635,18 @@ export class Wallet {
                     getChainparamsFuncName = 'get_ecoin_chainparams';
                 } else if (data.blockchain === 'ETHEREUM') {
                     bcryptochain = 'eth';
+                    is_btc_protocol = false;
                 } if (data.blockchain === 'DASH') {
                     bcryptochain = 'dash';
+                } if (data.blockchain === 'BINANCE') {
+                    bcryptochain = 'bnb';
+                    is_btc_protocol = false;
                 }
                 if (bcryptochain === undefined) {
                     event.returnValue = {data: null, errorMsg:`${data.blockchain}的交易签名尚未支持`};
                     return;
                 }
-                if (data.blockchain !== 'ETHEREUM') {
+                if (is_btc_protocol) {
                     let inputs = [];
                     let keys = [];
                     data.inputs.forEach(function (input) {
@@ -671,7 +676,7 @@ export class Wallet {
                         }
                     }
                     event.returnValue = {data: bcrypto.to_hex(signInfo.rawtx), errorMsg: null};
-                } else {
+                } else if (data.blockchain === 'ETHEREUM'){
                     // eth导入私钥存储的address是小写的
                     let hash = data.fromAddress.toLowerCase();
                     let key = self.findKey('eth', hash, data.hdPath);
@@ -680,6 +685,20 @@ export class Wallet {
                         return;
                     }
                     const signed_tx = bcrypto.eth.sign_rawtransaction(bcrypto.from_hex(data.rawTx), key);
+                    event.returnValue = {data: bcrypto.to_hex(signed_tx), errorMsg: null};
+                } else if (data.blockchain === 'BINANCE') {
+                    const result = Wallet.decodeBinanceAddress(data.fromAddress);
+                    if (result === undefined) {
+                        event.returnValue = {data: null, errorMsg: 'fromAddress无法decode'};
+                        return;
+                    }
+                    let hash = result.hash;
+                    let key = self.findKey('bnb', hash, data.hdPath);
+                    if (key === undefined) {
+                        event.returnValue = {data: null, errorMsg:`签名失败：缺少${data.fromAddress}的key`};
+                        return;
+                    }
+                    const signed_tx = bcrypto.bnb.sign_rawtransaction(bcrypto.from_hex(data.rawTx), key);
                     event.returnValue = {data: bcrypto.to_hex(signed_tx), errorMsg: null};
                 }
             } catch (e) {
@@ -806,8 +825,11 @@ export class Wallet {
         }
     }
 
-    importEthJson(json, password) {
-        const importResult = this.decodeEthJson(json, password);
+    importJson(json, password) {
+        let importResult = this.decodeEthJson(json, password);
+        if (!importResult.success) {
+            importResult = this.decodeBnbJson(json, password);
+        }
         if (!importResult.success) {
             return {data:false, errorMsg:importResult.errorMsg};
         } else {
@@ -848,6 +870,32 @@ export class Wallet {
         }
     }
 
+    decodeBnbJson(json, password) {
+        try {
+            const key = bcrypto.bnb.decode_key(json, password);
+            if (!key.is_valid()) {
+                return {success:false, errorMsg:'key不正确'};
+            }
+            const pubkey = key.get_pubkey();
+            const keyRaw = key.get_raw();
+            let cipher = crypto.createCipheriv('aes-128-cbc', this.aesKey, Buffer.alloc(16, 0));
+            let encryptKey = cipher.update(Buffer.from(keyRaw), 'binary', 'hex');
+            encryptKey += cipher.final('hex');
+            return {
+                success:true,
+                data:{
+                    encryptKey:encryptKey,
+                    pubkeyHash:pubkey.key_id(), // 存储pubkey的hash
+                    p2shP2wpkh:null,
+                    compressed:0,
+                    algorithm:null
+                }
+            }
+        } catch (e) {
+            return {success:false, errorMsg:'json格式或者密码不正确'};
+        }
+    }
+
     static decodeAddress(address) {
         let result = Wallet.decodeBlockchainAddress('btc', address);
         if (result === undefined) {
@@ -864,6 +912,9 @@ export class Wallet {
         }
         if (result === undefined) {
             result = Wallet.decodeBlockchainAddress('rcoin', address, 'get_ecoin_chainparams');
+        }
+        if (result === undefined) {
+            result = Wallet.decodeBinanceAddress(address);
         }
         return result !== undefined ? result : {hash:address.toLowerCase(), blockchain:'eth'};
     }
@@ -884,6 +935,30 @@ export class Wallet {
                 return {
                     hash:bcrypto.to_hex(outputscript.data),
                     blockchain:blockchain,
+                    netParams:testNetParams
+                };
+            } catch (e) {
+                return undefined;
+            }
+        }
+    }
+
+    static decodeBinanceAddress(address) {
+        try {
+            const mainNetParams = bcrypto.bnb.get_chainparams('main');
+            const keyhash = bcrypto.bnb.decode_address(address, mainNetParams);
+            return {
+                hash:bcrypto.to_hex(keyhash),
+                blockchain:'bnb',
+                netParams:mainNetParams
+            };
+        } catch (e) {
+            try {
+                const testNetParams =  bcrypto.bnb.get_chainparams('test');
+                const keyhash = bcrypto.bnb.decode_address(address, testNetParams);
+                return {
+                    hash:bcrypto.to_hex(keyhash),
+                    blockchain:'bnb',
                     netParams:testNetParams
                 };
             } catch (e) {
@@ -1001,6 +1076,11 @@ export class Wallet {
             if (blockchain === 'eth') {
                 let address = bcrypto.eth_PublicKey.to_address(pubkey);
                 if (address === hash) {
+                    return key;
+                }
+            } else if (blockchain === 'bnb') {
+                let pubkeyhash = pubkey.key_id();
+                if (pubkeyhash === hash) {
                     return key;
                 }
             } else {
