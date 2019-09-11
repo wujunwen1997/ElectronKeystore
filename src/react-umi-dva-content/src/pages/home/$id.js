@@ -9,7 +9,7 @@ import {timeFormat, isNumber, filterLastZore} from '@/utils'
 import Link from "umi/link";
 import fetch from '@/api/config/fetch.js'
 import {ipcRenderer} from "../../config/Electron";
-import {getEthDetail, getBtcDetail, btcAutograph, ethAutograph} from '@/api/signatureTransaction'
+import {getEthDetail, getBnbDetail, bnbAutograph, getBtcDetail, btcAutograph, ethAutograph} from '@/api/signatureTransaction'
 
 const confirm = Modal.confirm;
 
@@ -94,14 +94,29 @@ class HomeComponent extends Component {
           onOk() {
             const goQian = (k) => {
               let u = selectedRowKeys[k];
-              let api = coin[0] === 'ETH' ? getEthDetail : getBtcDetail;
+              let api = '';
+              if (coin[0] === 'ETH') {
+                api = getEthDetail
+              } else if (coin[0] === 'BNB') {
+                api = getBnbDetail
+              } else {
+                api = getBtcDetail
+              }
               that.setState({loading: true})
               fetch(api({id: u.id})).then((data) => {
                 const arg = ipcRenderer.sendSync('sign-tx', data)
                 if (arg && arg.data && arg.data !== '{}' && !arg.errorMsg) {
                   const onAutograph = (rawTx, id, blockchain) => {
-                    let api = blockchain === 'ETHEREUM' ? ethAutograph : btcAutograph;
-                    fetch(api({id, rawTx})).then(() => {
+                    let q_api = blockchain === 'ETHEREUM' ? ethAutograph : btcAutograph;
+                    if (blockchain === 'ETHEREUM') {
+                      q_api = ethAutograph
+                    } else if (blockchain === 'BINANCE') {
+                      q_api = bnbAutograph
+                    } else {
+                      q_api = btcAutograph
+                    }
+                    const sendData = {id, pubkey: rawTx.pubkey, signature: rawTx.signature }
+                    fetch(q_api(blockchain === 'BINANCE' ? sendData : {id, rawTx})).then(() => {
                       if (selectedRowKeys.length > k + 1) {
                         goQian(k + 1)
                       } else {

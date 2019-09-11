@@ -7,7 +7,7 @@ import PropTypes from 'prop-types';
 import {timeFormat, filterLastZore} from '@/utils/index.js'
 import {ipcRenderer} from "../../../config/Electron";
 import fetch from '@/api/config/fetch.js'
-import {btcAutograph, ethAutograph} from '@/api/signatureTransaction'
+import {btcAutograph, ethAutograph, bnbAutograph} from '@/api/signatureTransaction'
 const confirm = Modal.confirm;
 
 @connect(({ transactionDetail, loading }) => ({ transactionDetail, loading }))
@@ -32,9 +32,17 @@ class RouterComponent extends Component {
       })
     };
     const axiosAutograph = (id, rawTx) => {
-      let api = blockchain === 'ETHEREUM' ? ethAutograph : btcAutograph;
-      fetch(api({id, rawTx})).then(() => {
-          message.success('签名成功')
+      let api = ''
+      if (blockchain === 'ETHEREUM') {
+          api = ethAutograph
+      } else if (blockchain === 'BINANCE') {
+        api = bnbAutograph
+      } else {
+        api = btcAutograph
+      }
+      const sendData = {id, pubkey: rawTx.pubkey, signature: rawTx.signature }
+      fetch(api(blockchain === 'BINANCE' ? sendData : {id, rawTx})).then(() => {
+          message.success('签名成功');
           router.goBack()
         }).catch(() => {
         message.success('签名失败')

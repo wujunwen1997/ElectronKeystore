@@ -9,6 +9,7 @@ export default {
     wifText: '',
     jsonText: '',
     password: '',// json密码
+    blockchain: 'ETHEREUM',// 区块链
     totalElements: 0,//总条数
     pageNum: 1, // 当前页位置
     elements: [],

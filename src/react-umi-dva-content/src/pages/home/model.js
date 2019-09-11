@@ -11,7 +11,7 @@ export default {
     coin: ['BTC'],
     selectedRowKeys: [],
     navList: {
-      BTC: 0, BCH: 0, ETH: 0, LTC: 0, RCOIN: 0, ECOIN: 0, DASH: 0
+      BTC: 0, BCH: 0, ETH: 0, LTC: 0, RCOIN: 0, ECOIN: 0, DASH: 0, BNB: 0
     }
   },
   reducers: {
@@ -25,7 +25,7 @@ export default {
   effects: {
     * detailList({ payload }, { call, put }) {
       let name = '';
-      let obj = cloneDeep(payload)
+      let obj = cloneDeep(payload);
       switch (payload.blockchain) {
         case 'BTC':
           name = 'BITCOIN';
@@ -48,6 +48,9 @@ export default {
         case 'DASH':
           name = 'DASH';
           break;
+        case 'BNB':
+          name = 'BINANCE';
+          break;
         default:
           name = ''
       }
@@ -68,8 +71,9 @@ export default {
     //  获取侧边栏的待签名数量
     * getNavTotal({ payload }, { call, put }) {
       const data = yield call(fetch, getNavTotal());
+      console.log(555, data)
       if (data && data.length > 0) {
-        const obj = {BTC: 0, BCH: 0, ETH: 0, LTC: 0, RCOIN: 0, ECOIN: 0, DASH: 0}
+        const obj = {BTC: 0, BCH: 0, ETH: 0, LTC: 0, RCOIN: 0, ECOIN: 0, DASH: 0, BNB: 0}
         Object.keys(obj).forEach(k => {
           data.forEach(u => {
             if (k === 'BTC' && u.blockchain === 'BITCOIN') {
@@ -86,6 +90,8 @@ export default {
               obj.RCOIN = u.number
             } else if (k === 'ECOIN' && u.blockchain === 'ECOIN') {
               obj.ECOIN = u.number
+            } else if (k === 'BNB' && u.blockchain === 'BINANCE') {
+              obj.BNB = u.number
             }
           })
         })

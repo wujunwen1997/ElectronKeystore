@@ -1,4 +1,4 @@
-import {getEthDetail, getBtcDetail} from '@/api/signatureTransaction/index.js'
+import {getEthDetail, getBtcDetail, getBnbDetail} from '@/api/signatureTransaction/index.js'
 import {pathMatchRegexp} from '@/utils/index.js'
 import fetch from '@/api/config/fetch.js'
 
@@ -28,7 +28,13 @@ export default {
         inputArr = data.fromAddress ? [data.fromAddress] : [];
         outputArr = data.toAddress ? [data.toAddress] : []
       } else {
-        data = yield call(fetch, getBtcDetail({id: payload.data}));
+        let api = ''
+        if (payload.blockchain === 'BNB') {
+          api = getBnbDetail
+        } else {
+          api = getBtcDetail
+        }
+        data = yield call(fetch, api({id: payload.data}));
         let {inputs, outputs} = data;
         data.input = inputs
         data.outputs = outputs

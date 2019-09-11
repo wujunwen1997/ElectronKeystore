@@ -1,5 +1,5 @@
 import React, {Component} from 'react'
-import { Input, Button, message } from 'antd';
+import { Input, Button, message, Select } from 'antd';
 import {connect} from "dva";
 import {pathMatchRegexp} from '@/utils/index.js'
 import s from './index.scss'
@@ -9,6 +9,7 @@ import router from "umi/router";
 import {remote} from "../../../config/Electron";
 import PropTypes from 'prop-types';
 const { TextArea } = Input;
+const { Option } = Select;
 
 @connect(({addressManagement}) => ({addressManagement}))
 class Sider extends Component {
@@ -20,7 +21,7 @@ class Sider extends Component {
   };
   render() {
     const {addressManagement, dispatch, location} = this.props;
-    const {wifText, jsonText, password} = addressManagement;
+    const {wifText, jsonText, password, blockchain} = addressManagement;
     let isWif = pathMatchRegexp('/addressManagement/ImportAddress/:id', location.pathname)[1] === 'wif'
     const ReadFile = (arg) => {
       const success = () => {
@@ -68,7 +69,7 @@ class Sider extends Component {
           message.warning('请确认输入JSON私钥和解锁密码')
           return
         }
-        const data = ipcRenderer.sendSync('import-json', {json: jsonText, password: password});
+        const data = ipcRenderer.sendSync('import-json', {json: jsonText, password: password, blockchain: blockchain});
         importJsonEvent(data);
       }
     };
@@ -85,6 +86,12 @@ class Sider extends Component {
       dispatch({
         type: 'addressManagement/setModel',
         payload: {password: value}
+      })
+    }
+    const changeBlockchain = (e) => {
+      dispatch({
+        type: 'addressManagement/setModel',
+        payload: {blockchain: e}
       })
     }
     const fileImport = () => {
@@ -108,10 +115,19 @@ class Sider extends Component {
                       placeholder={isWif ? '在此粘贴WIF格式的私钥字符串，或从文件载入，多个私钥以进行换行分隔。' :
                         '在此粘贴JSON格式的私钥字符串，或从文件载入。'}/>
             <div className={s.bot}>
-                <Button type={'primary'} size={'small'} className={s.newBtn} onClick={fileImport}>从文件载入</Button>
-                {!isWif && <Input size="small" value={password} type={'password'} onChange={changeInput} placeholder="请在此输入解锁密码" />}
-                <Button type={'primary'} size={'small'} className={s.newBtn} onClick={this.goBack}>返回</Button>
-                <Button type={'primary'} size={'small'} className={s.importBtn} onClick={onImport} loading={this.state.loading}>导入</Button>
+              <Button type={'primary'} size={'small'} className={s.newBtn} onClick={fileImport}>从文件载入</Button>
+              {!isWif && <Input size="small" value={password} type={'password'} onChange={changeInput} placeholder="请在此输入解锁密码" />}
+              {
+                !isWif && <span style={{marginLeft: 10,}}>
+                  选择区块链
+                  <Select defaultValue="ETHEREUM" style={{ width: 120, marginLeft: 10 }} size={'small'} onChange={changeBlockchain} >
+                    <Option value="ETHEREUM">ETHEREUM</Option>
+                    <Option value="BINANCE">BINANCE</Option>
+                  </Select>
+                </span>
+              }
+              <Button type={'primary'} size={'small'} className={s.newBtn} onClick={this.goBack}>返回</Button>
+              <Button type={'primary'} size={'small'} className={s.importBtn} onClick={onImport} loading={this.state.loading}>导入</Button>
             </div>
           </div>
     );
