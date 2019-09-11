@@ -699,8 +699,12 @@ export class Wallet {
                         event.returnValue = {data: null, errorMsg:`签名失败：缺少${data.fromAddress}的key`};
                         return;
                     }
-                    const signed_tx = bcrypto.bnb.sign_rawtransaction(bcrypto.from_hex(data.rawTx), key);
-                    event.returnValue = {data: bcrypto.to_hex(signed_tx), errorMsg: null};
+                    const signature = bcrypto.to_hex(bcrypto.bnb.sign_rawtransaction(bcrypto.from_hex(data.rawTx), key));
+                    const pubkey_raw = bcrypto.to_hex(key.get_pubkey().get_raw());
+                    event.returnValue = {data: {
+                            'pubkey':pubkey_raw,
+                            'signature':signature
+                        }, errorMsg: null};
                 }
             } catch (e) {
                 event.returnValue = {data: null, errorMsg: e.message};
