@@ -355,6 +355,7 @@ export class Wallet {
         /*
         导入eth json，参数data是
         {
+          blockchain: 'ETHEREUM' // 区块链:ETHEREUM,BINANCE
           json:'', // json字符串
           password:''
         }
@@ -366,7 +367,7 @@ export class Wallet {
          */
         self.ipcMain.on('import-json', function (event, data) {
             try {
-                event.returnValue = self.importJson(data.json, data.password);
+                event.returnValue = self.importJson(data.blockchain, data.json, data.password);
             } catch (e) {
                 event.returnValue = {data: false, errorMsg: e.message};
             }
@@ -825,10 +826,15 @@ export class Wallet {
         }
     }
 
-    importJson(json, password) {
-        let importResult = this.decodeEthJson(json, password);
-        if (!importResult.success) {
+    importJson(blockchain, json, password) {
+        let importResult = undefined;
+        if (blockchain === 'ETHEREUM') {
+            importResult = this.decodeEthJson(json, password);
+        } else if (blockchain === 'BINANCE') {
             importResult = this.decodeBnbJson(json, password);
+        }
+        if (importResult === undefined) {
+            return {data:false, errorMsg:blockchain+'不支持json密钥导入'};
         }
         if (!importResult.success) {
             return {data:false, errorMsg:importResult.errorMsg};

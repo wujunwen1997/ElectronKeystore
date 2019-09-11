@@ -115,6 +115,31 @@ json:
 }
 密码: Rrjj20150128
 ```
+### 导入bnb json
+```shell
+json:
+{
+  "version": 1,
+  "id": "7478ce47-d0c4-4fb7-9941-d4503fb83e91",
+  "crypto": {
+    "ciphertext": "7bafe41aefc25ea65c0075692ee048a986e48b8c6dc039fefa27a6ad0c7f2374",
+    "cipherparams": {
+      "iv": "0f2ee06c802cf01cc36b4b648312189e"
+    },
+    "cipher": "aes-256-ctr",
+    "kdf": "pbkdf2",
+    "kdfparams": {
+      "dklen": 32,
+      "salt": "851df95b8b7bc9d1f6f94c12a352a9158f2335886ee7406a7f4cff576b67783e",
+      "c": 262144,
+      "prf": "hmac-sha256"
+    },
+    "mac": "0bda5b2de2cccdf35bebe4254808141a4366d21b780d54875c8298e7da69bca79f07f20bd7ce0f064f04fba2424f96333e4bfa0e238fa7a4e4ef127efa99cabf"
+  }
+}
+密码: Ws123456!
+地址：tbnb1smldx90nyx204fncupjuu6dudr0kqsxzu7xdcs
+```
 ### 导入hd
 ```shell
 mnemonic:  drum uniform toddler drink marriage position illegal bulk shrimp fresh school pave
