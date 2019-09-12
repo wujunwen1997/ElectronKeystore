@@ -15,6 +15,23 @@ npm start
 ## 开发者注意
 禁止使用非大量使用的第三方依赖包
 
+## 打包
+先对render项目进行打包
+```shell
+cd src/react-umi-dva-content
+npm run build
+```
+然后回到项目目录，使用electron-forge对整个项目进行package
+```shell
+npm run package
+```
+> 注意，需要package是否将blockchain-crypto.node正确打包，比如在mac检查out/ChainspayKeystore-darwin-x64/ChainspayKeystore.app/Contents/Resources/app/node_modules
+> 下面是否有blockchain-crypto.node这个文件，如果没有的话拷贝一份过来
+最后执行make
+```shell
+npm run make
+```
+
 ## 测试用例
 ### 导入wif
 第1列是主网wif格式的私钥，第2列是p2pkh地址，第3列是p2wpkh地址，第4列是p2sh_p2wpkh地址，第5列到第8列是对应测试环境的私钥和地址
